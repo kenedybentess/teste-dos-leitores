@@ -10,24 +10,19 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Tahoma,sans-serif}
         body{background:#f4f6f9;padding:20px}
-        .header-teste{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
-        .step-card{border:3px solid #dee2e6;border-radius:15px;padding:20px;margin-bottom:15px;transition:.3s}
-        .step-card.ativo{border-color:#ffc107;background:#fff3cd;box-shadow:0 5px 15px rgba(255,193,7,.3)}
-        .step-card.concluido{border-color:#198754;background:#d1e7dd}
-        .step-card.erro{border-color:#dc3545;background:#f8d7da}
-        .step-numero{width:40px;height:40px;background:#6c757d;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
-        .step-card.ativo .step-numero{background:#ffc107;color:#000}
-        .step-card.concluido .step-numero{background:#198754}
-        .step-card.erro .step-numero{background:#dc3545}
-        .codigo-lido{font-family:monospace;font-size:18px;font-weight:bold;color:#0d6efd}
+       .header-teste{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
+       .step-card{border:3px solid #dee2e6;border-radius:15px;padding:20px;margin-bottom:15px;transition:.3s}
+       .step-card.ativo{border-color:#ffc107;background:#fff3cd;box-shadow:0 5px 15px rgba(255,193,7,.3)}
+       .step-card.concluido{border-color:#198754;background:#d1e7dd}
+       .step-card.erro{border-color:#dc3545;background:#f8d7da}
+       .step-numero{width:40px;height:40px;background:#6c757d;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
+       .step-card.ativo.step-numero{background:#ffc107;color:#000}
+       .step-card.concluido.step-numero{background:#198754}
+       .step-card.erro.step-numero{background:#dc3545}
+       .codigo-lido{font-family:monospace;font-size:18px;font-weight:bold;color:#0d6efd}
         #reader{border:3px solid #0d6efd;border-radius:10px;max-width:500px;margin:0 auto}
-        .scan-ativo{background:#fff3cd!important;border:2px solid #ffc107!important}
-        .tabela-teste{background:white;border-radius:10px;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.08)}
-        .tabela-teste thead{background:#0d6efd;color:white}
-        .tabela-teste th{padding:15px;text-align:center;font-weight:600}
-        .tabela-teste td{padding:15px;text-align:center;vertical-align:middle}
-        .linha-ok{background:#d1e7dd!important}
-        .linha-nok{background:#f8d7da!important}
+       .scan-ativo{background:#fff3cd!important;border:3px solid #ffc107!important;font-size:24px!important}
+       .input-leitura{font-size:20px;padding:15px;text-align:center}
     </style>
 </head>
 <body>
@@ -75,7 +70,7 @@
         <!-- CÂMERA -->
         <div id="areaScanner" class="card mb-4" style="display:none;">
             <div class="card-body text-center">
-                <h5><i class="bi bi-camera"></i> Aponte para o código: <span id="codigoEsperado" class="text-primary"></span></h5>
+                <h5><i class="bi bi-camera"></i> Aponte para: <span id="codigoEsperado" class="text-primary"></span></h5>
                 <div id="reader"></div>
                 <button class="btn btn-secondary mt-3" onclick="pararScanner()">Fechar Câmera</button>
             </div>
@@ -83,7 +78,9 @@
 
         <!-- SEQUÊNCIA DE LEITURA -->
         <div id="areaSequencia" style="display:none;">
-            <h4 class="mb-3">Sequência de Leitura Obrigatória</h4>
+            <div class="alert alert-warning">
+                <strong><i class="bi bi-info-circle"></i> Instrução:</strong> Clique no campo amarelo e bipe o código com o leitor USB. O leitor deve enviar Enter no final.
+            </div>
             
             <!-- STEP 1: QR CODE -->
             <div class="step-card" id="step1">
@@ -93,7 +90,7 @@
                         <h5 class="mb-1">QR Code</h5>
                         <small class="text-muted">Esperado: 6922711051772</small>
                         <div class="mt-2">
-                            <input type="text" class="form-control form-control-lg input-leitura" id="input1" placeholder="Bipe o QR Code" readonly>
+                            <input type="text" class="form-control input-leitura" id="input1" placeholder="Clique aqui e bipe" autocomplete="off">
                             <div class="codigo-lido mt-2" id="lido1"></div>
                         </div>
                     </div>
@@ -111,7 +108,7 @@
                         <h5 class="mb-1">Código de Barras 1D</h5>
                         <small class="text-muted">Esperado: 2 112345 678917</small>
                         <div class="mt-2">
-                            <input type="text" class="form-control form-control-lg input-leitura" id="input2" placeholder="Bipe o código" readonly disabled>
+                            <input type="text" class="form-control input-leitura" id="input2" placeholder="Aguardando..." autocomplete="off" disabled>
                             <div class="codigo-lido mt-2" id="lido2"></div>
                         </div>
                     </div>
@@ -129,7 +126,7 @@
                         <h5 class="mb-1">Código de Barras 1D</h5>
                         <small class="text-muted">Esperado: 6901028075763</small>
                         <div class="mt-2">
-                            <input type="text" class="form-control form-control-lg input-leitura" id="input3" placeholder="Bipe o código" readonly disabled>
+                            <input type="text" class="form-control input-leitura" id="input3" placeholder="Aguardando..." autocomplete="off" disabled>
                             <div class="codigo-lido mt-2" id="lido3"></div>
                         </div>
                     </div>
@@ -147,7 +144,7 @@
                         <h5 class="mb-1">Versão de Firmware</h5>
                         <small class="text-muted">Bipe o código de versão</small>
                         <div class="mt-2">
-                            <input type="text" class="form-control form-control-lg input-leitura" id="input4" placeholder="Bipe o código" readonly disabled>
+                            <input type="text" class="form-control input-leitura" id="input4" placeholder="Aguardando..." autocomplete="off" disabled>
                             <div class="codigo-lido mt-2" id="lido4"></div>
                         </div>
                     </div>
@@ -168,35 +165,15 @@
                 </div>
             </div>
         </div>
-
-        <!-- HISTÓRICO DA SESSÃO -->
-        <div id="historicoSessao" class="mt-4" style="display:none;">
-            <h4>Testes Realizados Nesta Sessão</h4>
-            <div class="tabela-teste">
-                <table class="table table-bordered mb-0">
-                    <thead>
-                        <tr>
-                            <th>Série</th>
-                            <th>QR Code</th>
-                            <th>Código 1</th>
-                            <th>Código 2</th>
-                            <th>Firmware</th>
-                            <th>Resultado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaSessao"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
     <script>
         let html5QrcodeScanner, stepAtual = 0, dadosTeste = {};
         const codigosEsperados = {
             1: '6922711051772',
-            2: '2 112345 678917',
+            2: '2112345678917',
             3: '6901028075763',
-            4: null // Firmware aceita qualquer
+            4: null
         };
 
         if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
@@ -205,11 +182,12 @@
             carregarProdutos();
             carregarOperadores();
             
-            // Captura Enter do leitor USB
+            // Captura Enter do leitor USB em qualquer input
             document.addEventListener('keypress', e => {
                 if (e.key === 'Enter' && stepAtual > 0) {
-                    const input = document.activeElement;
-                    if (input?.classList.contains('input-leitura')) {
+                    e.preventDefault();
+                    const input = document.getElementById(`input${stepAtual}`);
+                    if (input &&!input.disabled && input.value.trim()) {
                         validarLeitura(stepAtual, input.value.trim());
                     }
                 }
@@ -229,7 +207,7 @@
         }
 
         function iniciarSequencia() {
-            if (!document.getElementById('produtoSel').value || !document.getElementById('operadorSel').value || !document.getElementById('serieSel').value) {
+            if (!document.getElementById('produtoSel').value ||!document.getElementById('operadorSel').value ||!document.getElementById('serieSel').value) {
                 return alert('Preencha Produto, Operador e Série');
             }
             
@@ -242,7 +220,6 @@
             
             document.getElementById('configCard').style.display = 'none';
             document.getElementById('areaSequencia').style.display = 'block';
-            document.getElementById('historicoSessao').style.display = 'block';
             
             ativarStep(1);
             if (document.getElementById('modoLeitura').value === 'camera') ativarCamera();
@@ -257,7 +234,9 @@
             
             const input = document.getElementById(`input${num}`);
             input.disabled = false;
+            input.classList.add('scan-ativo');
             input.focus();
+            input.select();
             
             if (document.getElementById('modoLeitura').value === 'camera') {
                 document.getElementById('codigoEsperado').innerText = codigosEsperados[num] || 'Qualquer código';
@@ -268,25 +247,31 @@
             if (!codigo) return;
             
             const esperado = codigosEsperados[step];
-            const correto = !esperado || codigo.replace(/\s/g,'') === esperado.replace(/\s/g,'');
+            const codigoLimpo = codigo.replace(/\s/g,'');
+            const esperadoLimpo = esperado? esperado.replace(/\s/g,'') : null;
+            const correto =!esperado || codigoLimpo === esperadoLimpo;
             
-            document.getElementById(`lido${step}`).innerHTML = `<i class="bi bi-${correto ? 'check-circle-fill text-success' : 'x-circle-fill text-danger'}"></i> ${codigo}`;
+            const input = document.getElementById(`input${step}`);
+            input.value = codigo;
+            input.classList.remove('scan-ativo');
+            
+            document.getElementById(`lido${step}`).innerHTML = `<i class="bi bi-${correto? 'check-circle-fill text-success' : 'x-circle-fill text-danger'}"></i> Lido: ${codigo} ${correto? '✓' : '✗'}`;
             document.getElementById(`step${step}`).classList.remove('ativo');
-            document.getElementById(`step${step}`).classList.add(correto ? 'concluido' : 'erro');
-            document.getElementById(`input${step}`).disabled = true;
+            document.getElementById(`step${step}`).classList.add(correto? 'concluido' : 'erro');
+            input.disabled = true;
             
-            dadosTeste.leituras[step] = { codigo, correto };
+            dadosTeste.leituras[step] = { codigo, correto, esperado };
             
             if (step < 4) {
-                setTimeout(() => ativarStep(step + 1), 500);
+                setTimeout(() => ativarStep(step + 1), 800);
             } else {
-                finalizarSequencia();
+                setTimeout(() => finalizarSequencia(), 800);
             }
         }
 
         function finalizarSequencia() {
             const todosCorretos = Object.values(dadosTeste.leituras).every(l => l.correto);
-            const resultado = todosCorretos ? 'APROVADO' : 'REPROVADO';
+            const resultado = todosCorretos? 'APROVADO' : 'REPROVADO';
             
             const teste = {
                 id: Date.now().toString(),
@@ -304,26 +289,11 @@
             localStorage.setItem('testes', JSON.stringify(testes));
             
             document.getElementById('resultadoFinal').style.display = 'block';
-            document.getElementById('resultadoFinal').className = `card mt-4 ${todosCorretos ? 'bg-success' : 'bg-danger'} text-white`;
-            document.getElementById('textoResultado').innerHTML = `<i class="bi bi-${todosCorretos ? 'check' : 'x'}-circle-fill"></i> ${resultado}`;
+            document.getElementById('resultadoFinal').className = `card mt-4 ${todosCorretos? 'bg-success' : 'bg-danger'} text-white`;
+            document.getElementById('textoResultado').innerHTML = `<i class="bi bi-${todosCorretos? 'check' : 'x'}-circle-fill"></i> ${resultado}`;
             document.getElementById('detalheResultado').innerText = `Série: ${dadosTeste.serie} | ${Object.values(dadosTeste.leituras).filter(l => l.correto).length}/4 códigos corretos`;
             
-            adicionarHistorico(teste);
             pararScanner();
-        }
-
-        function adicionarHistorico(teste) {
-            const tr = document.createElement('tr');
-            tr.className = teste.resultado === 'APROVADO' ? 'linha-ok' : 'linha-nok';
-            tr.innerHTML = `
-                <td><strong>${teste.serie}</strong></td>
-                <td>${teste.leituras[1]?.codigo || '-'}</td>
-                <td>${teste.leituras[2]?.codigo || '-'}</td>
-                <td>${teste.leituras[3]?.codigo || '-'}</td>
-                <td>${teste.leituras[4]?.codigo || '-'}</td>
-                <td><span class="badge ${teste.resultado === 'APROVADO' ? 'bg-success' : 'bg-danger'}">${teste.resultado}</span></td>
-            `;
-            document.getElementById('tabelaSessao').prepend(tr);
         }
 
         function ativarCamera() {
@@ -331,7 +301,7 @@
             html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
             html5QrcodeScanner.render(codigo => {
                 const input = document.getElementById(`input${stepAtual}`);
-                if (input && !input.disabled) {
+                if (input &&!input.disabled) {
                     input.value = codigo;
                     validarLeitura(stepAtual, codigo);
                 }
@@ -358,6 +328,7 @@
             document.querySelectorAll('.input-leitura').forEach(input => {
                 input.value = '';
                 input.disabled = true;
+                input.classList.remove('scan-ativo');
             });
             document.querySelectorAll('.codigo-lido').forEach(div => div.innerHTML = '');
         }
