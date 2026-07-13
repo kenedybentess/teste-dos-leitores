@@ -39,7 +39,6 @@ body{background:#f4f6f9;overflow:hidden}
 <div class="mb-3"><label>Senha</label><input id="pass" type="password" class="form-control" value="123"></div>
 <button class="btn btn-primary w-100" onclick="login()">Entrar</button>
 </div>
-</div>
 
 <!-- SISTEMA -->
 <div id="app">
@@ -67,23 +66,22 @@ body{background:#f4f6f9;overflow:hidden}
 <h6>Total Testes</h6>
 <div class="big-number" id="totalTestes">0</div>
 </div>
+</div>
 <div class="col-md-3">
 <div class="card-dashboard">
 <h6>Aprovados</h6>
 <div class="big-number text-success" id="totalAprovados">0</div>
-</div>
 </div>
 <div class="col-md-3">
 <div class="card-dashboard">
 <h6>Reprovados</h6>
 <div class="big-number text-danger" id="totalReprovados">0</div>
 </div>
+</div>
 <div class="col-md-3">
 <div class="card-dashboard">
 <h6>Produtos</h6>
 <div class="big-number" id="totalProdutos">0</div>
-</div>
-</div>
 </div>
 <hr>
 <h4>Últimos Testes</h4>
@@ -91,7 +89,6 @@ body{background:#f4f6f9;overflow:hidden}
 <thead><tr><th>Série</th><th>Produto</th><th>Modelo</th><th>Operador</th><th>Resultado</th></tr></thead>
 <tbody id="ultimosTestes"></tbody>
 </table>
-</div>
 </div>
 
 <script>
@@ -126,13 +123,13 @@ function atualizarDashboard(){
 const testes=JSON.parse(localStorage.getItem('testes'));
 const produtos=JSON.parse(localStorage.getItem('produtos'));
 document.getElementById('totalTestes').innerText=testes.length;
-document.getElementById('totalAprovados').innerText=testes.filter(t=>t.resultado==='Aprovado').length;
-document.getElementById('totalReprovados').innerText=testes.filter(t=>t.resultado==='Reprovado').length;
+document.getElementById('totalAprovados').innerText=testes.filter(t=>t.resultado==='APROVADO').length;
+document.getElementById('totalReprovados').innerText=testes.filter(t=>t.resultado==='REPROVADO').length;
 document.getElementById('totalProdutos').innerText=produtos.length;
 const tbody=document.getElementById('ultimosTestes');
 const ultimos=testes.slice(0,5);
 tbody.innerHTML=ultimos.length===0?'<tr><td colspan="5" class="text-center text-muted">Nenhum teste</td></tr>':
-ultimos.map(t=>`<tr><td><strong>${t.serie}</strong></td><td>${t.produtoCodigo}</td><td>${t.modelo}</td><td>${t.operador}</td><td><span class="badge ${t.resultado==='Aprovado'?'bg-success':'bg-danger'}">${t.resultado}</span></td></tr>`).join('');
+ultimos.map(t=>`<tr><td><strong>${t.serie}</strong></td><td>${t.produtoCodigo}</td><td>${t.modelo}</td><td>${t.operador}</td><td><span class="badge ${t.resultado==='APROVADO'?'bg-success':'bg-danger'}">${t.resultado}</span></td></tr>`).join('');
 }
 </script>
 </body>
