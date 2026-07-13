@@ -301,6 +301,7 @@ if(u=="admin" && p=="123"){
 sessionStorage.setItem("logged","true");
 document.getElementById("loginPage").style.display="none";
 document.getElementById("app").style.display="block";
+carregarTudo();
 }else{alert("Usuário ou senha inválidos")}
 }
 function logout(){sessionStorage.removeItem("logged");location.reload()}
@@ -319,7 +320,7 @@ let modalProduto,modalOperador;
 document.addEventListener('DOMContentLoaded',function(){
 modalProduto=new bootstrap.Modal(document.getElementById('modalProduto'));
 modalOperador=new bootstrap.Modal(document.getElementById('modalOperador'));
-carregarTudo();
+if(sessionStorage.getItem("logged")==="true") carregarTudo();
 });
 
 // === NAVEGAÇÃO ===
@@ -333,7 +334,7 @@ event.target.closest('li').classList.add('active-menu');
 if(id==='produtos')carregarProdutos();
 if(id==='operadores')carregarOperadores();
 if(id==='dashboard')atualizarDashboard();
-if(id==='testes'){carregarProdutosTeste();carregarStatsTestes()}
+if(id==='testes'){carregarProdutosTeste();carregarStatsTestes();atualizarSelectOperadores()}
 if(id==='historico')carregarHistorico();
 }
 
