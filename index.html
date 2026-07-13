@@ -16,16 +16,17 @@ body{background:#f4f6f9;overflow:hidden}
 .sidebar{width:250px;background:#212529;color:white;height:100vh;position:fixed;left:0;top:0;overflow-y:auto}
 .sidebar h3{padding:20px;text-align:center;background:#0d6efd;position:sticky;top:0}
 .sidebar ul{list-style:none;padding:0}
-.sidebar li{padding:15px 20px;cursor:pointer;transition:.3s}
-.sidebar li:hover{background:#0d6efd}
-.sidebar li.active-menu{background:#0d6efd}
+.sidebar li{padding:0}
+.sidebar a{color:white;text-decoration:none;display:block;padding:15px 20px;transition:.3s}
+.sidebar a:hover{background:#0d6efd;color:white}
+.sidebar a.active{background:#0d6efd}
+.sidebar li.logout{padding:15px 20px;cursor:pointer;transition:.3s}
+.sidebar li.logout:hover{background:#dc3545}
 .topbar{margin-left:250px;height:60px;background:white;display:flex;justify-content:space-between;align-items:center;padding:0 25px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
 .content{margin-left:250px;padding:25px;height:calc(100vh - 60px);overflow:auto}
 .card-dashboard{border:none;border-radius:15px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,.08);transition:.3s}
 .card-dashboard:hover{transform:translateY(-5px)}
 .big-number{font-size:35px;font-weight:bold}
-.page{display:none}
-.page.active{display:block}
 @media (max-width: 768px){.sidebar{width:100%;height:auto;position:relative}.topbar,.content{margin-left:0}#app{overflow:auto}}
 </style>
 </head>
@@ -45,14 +46,14 @@ body{background:#f4f6f9;overflow:hidden}
 <div class="sidebar">
 <h3><i class="bi bi-upc-scan"></i> Leitores PRO</h3>
 <ul>
-<li onclick="openPage('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</li>
-<li onclick="openPage('produtos')"><i class="bi bi-box-seam"></i> Produtos</li>
-<li onclick="openPage('operadores')"><i class="bi bi-people"></i> Operadores</li>
-<li onclick="openPage('testes')"><i class="bi bi-clipboard-check"></i> Testes</li>
-<li onclick="openPage('historico')"><i class="bi bi-clock-history"></i> Histórico</li>
-<li onclick="openPage('etiquetas')"><i class="bi bi-printer"></i> Etiquetas</li>
-<li onclick="openPage('relatorios')"><i class="bi bi-file-earmark-bar-graph"></i> Relatórios</li>
-<li onclick="logout()"><i class="bi bi-box-arrow-left"></i> Sair</li>
+<li><a href="index.html" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="produtos.html"><i class="bi bi-box-seam"></i> Produtos</a></li>
+<li><a href="operadores.html"><i class="bi bi-people"></i> Operadores</a></li>
+<li><a href="testes.html"><i class="bi bi-clipboard-check"></i> Testes</a></li>
+<li><a href="historico.html"><i class="bi bi-clock-history"></i> Histórico</a></li>
+<li><a href="etiquetas.html"><i class="bi bi-printer"></i> Etiquetas</a></li>
+<li><a href="relatorios.html"><i class="bi bi-file-earmark-bar-graph"></i> Relatórios</a></li>
+<li class="logout" onclick="logout()"><i class="bi bi-box-arrow-left"></i> Sair</li>
 </ul>
 </div>
 <div class="topbar">
@@ -60,15 +61,11 @@ body{background:#f4f6f9;overflow:hidden}
 <div id="nomeUsuario">Administrador</div>
 </div>
 <div class="content">
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="page active">
 <div class="row">
 <div class="col-md-3">
 <div class="card-dashboard">
 <h6>Total Testes</h6>
 <div class="big-number" id="totalTestes">0</div>
-</div>
 </div>
 <div class="col-md-3">
 <div class="card-dashboard">
@@ -96,199 +93,6 @@ body{background:#f4f6f9;overflow:hidden}
 <tbody id="ultimosTestes"></tbody>
 </table>
 </div>
-
-<!-- PRODUTOS -->
-<div id="produtos" class="page">
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h2><i class="bi bi-box-seam"></i> Cadastro de Produtos</h2>
-<button class="btn btn-primary" onclick="abrirModalProduto()"><i class="bi bi-plus-circle"></i> Novo Produto</button>
-</div>
-<div class="card">
-<div class="card-body">
-<div class="table-responsive">
-<table class="table table-hover">
-<thead><tr><th>Código</th><th>Nome</th><th>Modelo</th><th>Tipo</th><th style="width:150px">Ações</th></tr></thead>
-<tbody id="tabelaProdutos"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-
-<!-- OPERADORES -->
-<div id="operadores" class="page">
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h2><i class="bi bi-people"></i> Cadastro de Operadores</h2>
-<button class="btn btn-primary" onclick="abrirModalOperador()"><i class="bi bi-person-plus"></i> Novo Operador</button>
-</div>
-<div class="card">
-<div class="card-body">
-<div class="table-responsive">
-<table class="table table-hover">
-<thead><tr><th>Matrícula</th><th>Nome</th><th>Setor</th><th>Turno</th><th>Status</th><th style="width:150px">Ações</th></tr></thead>
-<tbody id="tabelaOperadores"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-
-<!-- TESTES -->
-<div id="testes" class="page">
-<h2><i class="bi bi-clipboard-check"></i> Módulos de Teste</h2>
-<div class="row mt-4">
-<div class="col-md-8">
-<div class="card">
-<div class="card-header bg-primary text-white"><h5 class="mb-0">Executar Teste</h5></div>
-<div class="card-body">
-<div class="row mb-3">
-<div class="col-md-6">
-<label>Tipo de Teste *</label>
-<select id="testeTipo" class="form-select" onchange="carregarProdutosTeste()">
-<option value="">Selecione...</option>
-<option value="BR520">BR520</option>
-<option value="EL250">EL250</option>
-<option value="FLASH">FLASH</option>
-<option value="EL8600">EL8600</option>
-</select>
-</div>
-<div class="col-md-6">
-<label>Produto *</label>
-<select id="testeProduto" class="form-select">
-<option value="">Selecione o tipo primeiro</option>
-</select>
-</div>
-</div>
-<div class="row mb-3">
-<div class="col-md-6">
-<label>Número de Série *</label>
-<input id="testeSerie" class="form-control" placeholder="Ex: SN123456">
-</div>
-<div class="col-md-6">
-<label>Operador *</label>
-<select id="testeOperador" class="form-select"></select>
-</div>
-</div>
-<div class="mb-3">
-<label>Observações</label>
-<textarea id="testeObs" class="form-control" rows="2"></textarea>
-</div>
-<div class="d-flex gap-2">
-<button class="btn btn-success btn-lg flex-fill" onclick="executarTeste('Aprovado')">
-<i class="bi bi-check-circle"></i> APROVAR
-</button>
-<button class="btn btn-danger btn-lg flex-fill" onclick="executarTeste('Reprovado')">
-<i class="bi bi-x-circle"></i> REPROVAR
-</button>
-</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="card">
-<div class="card-header"><h6 class="mb-0">Estatísticas do Dia</h6></div>
-<div class="card-body">
-<div class="d-flex justify-content-between mb-2"><span>Total:</span><strong id="statsHoje">0</strong></div>
-<div class="d-flex justify-content-between mb-2"><span class="text-success">Aprovados:</span><strong id="statsAprovado" class="text-success">0</strong></div>
-<div class="d-flex justify-content-between mb-2"><span class="text-danger">Reprovados:</span><strong id="statsReprovado" class="text-danger">0</strong></div>
-<hr>
-<div class="d-flex justify-content-between"><span>Taxa Aprovação:</span><strong id="statsTaxa">0%</strong></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- HISTÓRICO -->
-<div id="historico" class="page">
-<h2><i class="bi bi-clock-history"></i> Histórico de Testes</h2>
-<div class="card mt-3">
-<div class="card-body">
-<div class="table-responsive">
-<table class="table table-hover">
-<thead><tr><th>Data/Hora</th><th>Série</th><th>Produto</th><th>Modelo</th><th>Tipo</th><th>Operador</th><th>Resultado</th><th>Obs</th></tr></thead>
-<tbody id="tabelaHistorico"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-
-<!-- ETIQUETAS -->
-<div id="etiquetas" class="page">
-<h2>Etiquetas</h2>
-<p class="text-muted">Em desenvolvimento...</p>
-</div>
-
-<!-- RELATÓRIOS -->
-<div id="relatorios" class="page">
-<h2>Relatórios</h2>
-<p class="text-muted">Em desenvolvimento...</p>
-</div>
-
-</div>
-</div>
-
-<!-- Modal Produto -->
-<div class="modal fade" id="modalProduto" tabindex="-1">
-<div class="modal-dialog"><div class="modal-content">
-<div class="modal-header bg-primary text-white">
-<h5 class="modal-title" id="tituloModalProduto">Novo Produto</h5>
-<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<input type="hidden" id="produtoId">
-<div class="mb-3"><label>Código *</label><input id="produtoCodigo" class="form-control" required></div>
-<div class="mb-3"><label>Nome *</label><input id="produtoNome" class="form-control" required></div>
-<div class="mb-3"><label>Modelo *</label><input id="produtoModelo" class="form-control" required></div>
-<div class="mb-3"><label>Tipo</label>
-<select id="produtoTipo" class="form-select">
-<option value="BR520">BR520</option><option value="EL250">EL250</option>
-<option value="FLASH">FLASH</option><option value="EL8600">EL8600</option>
-</select>
-</div>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-<button type="button" class="btn btn-primary" onclick="salvarProduto()">Salvar</button>
-</div>
-</div></div>
-</div>
-
-<!-- Modal Operador -->
-<div class="modal fade" id="modalOperador" tabindex="-1">
-<div class="modal-dialog"><div class="modal-content">
-<div class="modal-header bg-primary text-white">
-<h5 class="modal-title" id="tituloModalOperador">Novo Operador</h5>
-<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<input type="hidden" id="operadorId">
-<div class="mb-3"><label>Matrícula *</label><input id="operadorMatricula" class="form-control" required></div>
-<div class="mb-3"><label>Nome *</label><input id="operadorNome" class="form-control" required></div>
-<div class="mb-3"><label>Setor</label>
-<select id="operadorSetor" class="form-select">
-<option value="Produção">Produção</option><option value="Qualidade">Qualidade</option>
-<option value="Engenharia">Engenharia</option><option value="Manutenção">Manutenção</option>
-</select>
-</div>
-<div class="mb-3"><label>Turno</label>
-<select id="operadorTurno" class="form-select">
-<option value="1º Turno">1º Turno</option><option value="2º Turno">2º Turno</option>
-<option value="3º Turno">3º Turno</option><option value="Administrativo">Administrativo</option>
-</select>
-</div>
-<div class="mb-3"><label>Status</label>
-<select id="operadorStatus" class="form-select">
-<option value="Ativo">Ativo</option><option value="Inativo">Inativo</option>
-</select>
-</div>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-<button type="button" class="btn btn-primary" onclick="salvarOperador()">Salvar</button>
-</div>
-</div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -301,7 +105,7 @@ if(u=="admin" && p=="123"){
 sessionStorage.setItem("logged","true");
 document.getElementById("loginPage").style.display="none";
 document.getElementById("app").style.display="block";
-carregarTudo();
+atualizarDashboard();
 }else{alert("Usuário ou senha inválidos")}
 }
 function logout(){sessionStorage.removeItem("logged");location.reload()}
@@ -315,171 +119,9 @@ if(!localStorage.getItem('produtos')) localStorage.setItem('produtos',JSON.strin
 if(!localStorage.getItem('operadores')) localStorage.setItem('operadores',JSON.stringify([{id:'1',matricula:'ADMIN',nome:'Administrador',setor:'Administrativo',turno:'Administrativo',status:'Ativo'}]));
 if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
 
-let modalProduto,modalOperador;
-
 document.addEventListener('DOMContentLoaded',function(){
-modalProduto=new bootstrap.Modal(document.getElementById('modalProduto'));
-modalOperador=new bootstrap.Modal(document.getElementById('modalOperador'));
-if(sessionStorage.getItem("logged")==="true") carregarTudo();
+if(sessionStorage.getItem("logged")==="true") atualizarDashboard();
 });
-
-// === NAVEGAÇÃO ===
-function openPage(id){
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-const titles={dashboard:'Dashboard',produtos:'Cadastro de Produtos',operadores:'Cadastro de Operadores',testes:'Módulos de Teste',historico:'Histórico',etiquetas:'Etiquetas',relatorios:'Relatórios'};
-document.querySelector('.topbar h4').innerText=titles[id];
-document.querySelectorAll('.sidebar li').forEach(li=>li.classList.remove('active-menu'));
-event.target.closest('li').classList.add('active-menu');
-if(id==='produtos')carregarProdutos();
-if(id==='operadores')carregarOperadores();
-if(id==='dashboard')atualizarDashboard();
-if(id==='testes'){carregarProdutosTeste();carregarStatsTestes();atualizarSelectOperadores()}
-if(id==='historico')carregarHistorico();
-}
-
-// === PRODUTOS ===
-function carregarProdutos(){
-const produtos=JSON.parse(localStorage.getItem('produtos'));
-const tbody=document.getElementById('tabelaProdutos');
-tbody.innerHTML=produtos.length===0?'<tr><td colspan="5" class="text-center text-muted">Nenhum produto</td></tr>':
-produtos.map(p=>`<tr><td><strong>${p.codigo}</strong></td><td>${p.nome}</td><td>${p.modelo}</td><td><span class="badge bg-secondary">${p.tipo}</span></td><td><button class="btn btn-sm btn-warning me-1" onclick="editarProduto('${p.id}')"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="excluirProduto('${p.id}')"><i class="bi bi-trash"></i></button></td></tr>`).join('');
-}
-function abrirModalProduto(){
-document.getElementById('tituloModalProduto').innerText='Novo Produto';
-document.getElementById('produtoId').value='';
-document.getElementById('produtoCodigo').value='';
-document.getElementById('produtoNome').value='';
-document.getElementById('produtoModelo').value='';
-modalProduto.show();
-}
-function salvarProduto(){
-const id=document.getElementById('produtoId').value;
-const codigo=document.getElementById('produtoCodigo').value.trim();
-const nome=document.getElementById('produtoNome').value.trim();
-const modelo=document.getElementById('produtoModelo').value.trim();
-const tipo=document.getElementById('produtoTipo').value;
-if(!codigo||!nome||!modelo)return alert('Preencha todos os campos');
-let produtos=JSON.parse(localStorage.getItem('produtos'));
-if(produtos.find(p=>p.codigo===codigo&&p.id!==id))return alert('Código já existe');
-if(id)produtos=produtos.map(p=>p.id===id?{id,codigo,nome,modelo,tipo}:p);
-else produtos.push({id:Date.now().toString(),codigo,nome,modelo,tipo});
-localStorage.setItem('produtos',JSON.stringify(produtos));
-modalProduto.hide();carregarProdutos();atualizarDashboard();
-}
-function editarProduto(id){
-const p=JSON.parse(localStorage.getItem('produtos')).find(p=>p.id===id);
-document.getElementById('tituloModalProduto').innerText='Editar Produto';
-document.getElementById('produtoId').value=p.id;
-document.getElementById('produtoCodigo').value=p.codigo;
-document.getElementById('produtoNome').value=p.nome;
-document.getElementById('produtoModelo').value=p.modelo;
-document.getElementById('produtoTipo').value=p.tipo;
-modalProduto.show();
-}
-function excluirProduto(id){
-if(!confirm('Excluir?'))return;
-let produtos=JSON.parse(localStorage.getItem('produtos')).filter(p=>p.id!==id);
-localStorage.setItem('produtos',JSON.stringify(produtos));
-carregarProdutos();atualizarDashboard();
-}
-
-// === OPERADORES ===
-function carregarOperadores(){
-const ops=JSON.parse(localStorage.getItem('operadores'));
-const tbody=document.getElementById('tabelaOperadores');
-tbody.innerHTML=ops.length===0?'<tr><td colspan="6" class="text-center text-muted">Nenhum operador</td></tr>':
-ops.map(o=>`<tr><td><strong>${o.matricula}</strong></td><td>${o.nome}</td><td>${o.setor}</td><td>${o.turno}</td><td><span class="badge ${o.status==='Ativo'?'bg-success':'bg-secondary'}">${o.status}</span></td><td><button class="btn btn-sm btn-warning me-1" onclick="editarOperador('${o.id}')"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="excluirOperador('${o.id}')" ${o.matricula==='ADMIN'?'disabled':''}><i class="bi bi-trash"></i></button></td></tr>`).join('');
-atualizarSelectOperadores();
-}
-function abrirModalOperador(){
-document.getElementById('tituloModalOperador').innerText='Novo Operador';
-document.getElementById('operadorId').value='';
-document.getElementById('operadorMatricula').value='';
-document.getElementById('operadorNome').value='';
-modalOperador.show();
-}
-function salvarOperador(){
-const id=document.getElementById('operadorId').value;
-const matricula=document.getElementById('operadorMatricula').value.trim();
-const nome=document.getElementById('operadorNome').value.trim();
-const setor=document.getElementById('operadorSetor').value;
-const turno=document.getElementById('operadorTurno').value;
-const status=document.getElementById('operadorStatus').value;
-if(!matricula||!nome)return alert('Preencha os campos');
-let ops=JSON.parse(localStorage.getItem('operadores'));
-if(ops.find(o=>o.matricula===matricula&&o.id!==id))return alert('Matrícula já existe');
-if(id)ops=ops.map(o=>o.id===id?{id,matricula,nome,setor,turno,status}:o);
-else ops.push({id:Date.now().toString(),matricula,nome,setor,turno,status});
-localStorage.setItem('operadores',JSON.stringify(ops));
-modalOperador.hide();carregarOperadores();
-}
-function editarOperador(id){
-const o=JSON.parse(localStorage.getItem('operadores')).find(o=>o.id===id);
-document.getElementById('tituloModalOperador').innerText='Editar Operador';
-document.getElementById('operadorId').value=o.id;
-document.getElementById('operadorMatricula').value=o.matricula;
-document.getElementById('operadorNome').value=o.nome;
-document.getElementById('operadorSetor').value=o.setor;
-document.getElementById('operadorTurno').value=o.turno;
-document.getElementById('operadorStatus').value=o.status;
-modalOperador.show();
-}
-function excluirOperador(id){
-if(!confirm('Excluir?'))return;
-let ops=JSON.parse(localStorage.getItem('operadores')).filter(o=>o.id!==id);
-localStorage.setItem('operadores',JSON.stringify(ops));
-carregarOperadores();
-}
-function atualizarSelectOperadores(){
-const ops=JSON.parse(localStorage.getItem('operadores'));
-const select=document.getElementById('testeOperador');
-if(!select)return;
-const ativos=ops.filter(o=>o.status==='Ativo');
-select.innerHTML='<option value="">Selecione o operador</option>'+ativos.map(o=>`<option value="${o.nome}">${o.matricula} - ${o.nome}</option>`).join('');
-}
-
-// === TESTES ===
-function carregarProdutosTeste(){
-const tipo=document.getElementById('testeTipo').value;
-const select=document.getElementById('testeProduto');
-const produtos=JSON.parse(localStorage.getItem('produtos'));
-if(!tipo){select.innerHTML='<option value="">Selecione o tipo primeiro</option>';return}
-const filtrados=produtos.filter(p=>p.tipo===tipo);
-select.innerHTML=filtrados.length===0?'<option value="">Nenhum produto cadastrado</option>':
-'<option value="">Selecione...</option>'+filtrados.map(p=>`<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`).join('');
-}
-function executarTeste(resultado){
-const tipo=document.getElementById('testeTipo').value;
-const produto=document.getElementById('testeProduto').value;
-const serie=document.getElementById('testeSerie').value.trim();
-const operador=document.getElementById('testeOperador').value;
-const obs=document.getElementById('testeObs').value.trim();
-if(!tipo||!produto||!serie||!operador)return alert('Preencha todos os campos obrigatórios');
-const produtos=JSON.parse(localStorage.getItem('produtos'));
-const prod=produtos.find(p=>p.codigo===produto);
-const teste={id:Date.now().toString(),data:new Date().toISOString(),tipo,produtoCodigo:produto,produtoNome:prod.nome,modelo:prod.modelo,serie,operador,resultado,obs};
-let testes=JSON.parse(localStorage.getItem('testes'));
-testes.unshift(teste);
-localStorage.setItem('testes',JSON.stringify(testes));
-alert(`Teste ${resultado} registrado!`);
-document.getElementById('testeSerie').value='';
-document.getElementById('testeObs').value='';
-carregarStatsTestes();atualizarDashboard();
-}
-function carregarStatsTestes(){
-const testes=JSON.parse(localStorage.getItem('testes'));
-const hoje=new Date().toDateString();
-const testesHoje=testes.filter(t=>new Date(t.data).toDateString()===hoje);
-const aprovados=testesHoje.filter(t=>t.resultado==='Aprovado').length;
-const reprovados=testesHoje.filter(t=>t.resultado==='Reprovado').length;
-const total=testesHoje.length;
-const taxa=total>0?Math.round((aprovados/total)*100):0;
-document.getElementById('statsHoje').innerText=total;
-document.getElementById('statsAprovado').innerText=aprovados;
-document.getElementById('statsReprovado').innerText=reprovados;
-document.getElementById('statsTaxa').innerText=taxa+'%';
-}
 
 // === DASHBOARD ===
 function atualizarDashboard(){
@@ -493,23 +135,6 @@ const tbody=document.getElementById('ultimosTestes');
 const ultimos=testes.slice(0,5);
 tbody.innerHTML=ultimos.length===0?'<tr><td colspan="5" class="text-center text-muted">Nenhum teste</td></tr>':
 ultimos.map(t=>`<tr><td><strong>${t.serie}</strong></td><td>${t.produtoCodigo}</td><td>${t.modelo}</td><td>${t.operador}</td><td><span class="badge ${t.resultado==='Aprovado'?'bg-success':'bg-danger'}">${t.resultado}</span></td></tr>`).join('');
-}
-
-// === HISTÓRICO ===
-function carregarHistorico(){
-const testes=JSON.parse(localStorage.getItem('testes'));
-const tbody=document.getElementById('tabelaHistorico');
-tbody.innerHTML=testes.length===0?'<tr><td colspan="8" class="text-center text-muted">Nenhum teste</td></tr>':
-testes.map(t=>`<tr><td>${new Date(t.data).toLocaleString('pt-BR')}</td><td><strong>${t.serie}</strong></td><td>${t.produtoCodigo}</td><td>${t.modelo}</td><td><span class="badge bg-secondary">${t.tipo}</span></td><td>${t.operador}</td><td><span class="badge ${t.resultado==='Aprovado'?'bg-success':'bg-danger'}">${t.resultado}</span></td><td>${t.obs||'-'}</td></tr>`).join('');
-}
-
-// === CARREGA TUDO ===
-function carregarTudo(){
-carregarProdutos();
-carregarOperadores();
-atualizarDashboard();
-carregarStatsTestes();
-carregarHistorico();
 }
 </script>
 </body>
