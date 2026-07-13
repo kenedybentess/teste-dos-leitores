@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulos de Teste - Leitores PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Segoe UI, Tahoma, sans-serif;
+        }
+        body {
+            background: #f4f6f9;
+            padding: 20px;
+        }
+        .header-teste {
+            background: linear-gradient(135deg, #0d6efd, #1e88e5);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.1);
+        }
+        .card-teste {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            transition: .3s;
+            cursor: pointer;
+            height: 100%;
+        }
+        .card-teste:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,.15);
+        }
+        .card-teste.active {
+            border: 3px solid #0d6efd;
+        }
+        .badge-tipo {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+        .resultado-box {
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .resultado-box.aprovado {
+            background: #d1e7dd;
+            border: 2px solid #0f5132;
+            color: #0f5132;
+        }
+        .resultado-box.reprovado {
+            background: #f8d7da;
+            border: 2px solid #842029;
+            color: #842029;
+        }
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- HEADER -->
+        <div class="header-teste">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-clipboard-check"></i> Módulos de Teste</h2>
+                    <p class="mb-0">Selecione o tipo de teste e execute</p>
+                </div>
+                <button class="btn btn-light" onclick="window.location.href='index.html'">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Sistema
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- SELEÇÃO DE TESTE -->
+            <div class="col-lg-8">
+                <h4 class="mb-3">1. Selecione o Tipo de Teste</h4>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card card-teste p-3 text-center" onclick="selecionarTeste('BR520')">
+                            <i class="bi bi-upc-scan" style="font-size: 40px; color: #0d6efd;"></i>
+                            <h5 class="mt-2">BR520</h5>
+                            <span class="badge bg-primary badge-tipo">Leitor 2D</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-teste p-3 text-center" onclick="selecionarTeste('EL250')">
+                            <i class="bi bi-qr-code-scan" style="font-size: 40px; color: #198754;"></i>
+                            <h5 class="mt-2">EL250</h5>
+                            <span class="badge bg-success badge-tipo">Leitor 1D/2D</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-teste p-3 text-center" onclick="selecionarTeste('FLASH')">
+                            <i class="bi bi-lightning-charge" style="font-size: 40px; color: #ffc107;"></i>
+                            <h5 class="mt-2">FLASH</h5>
+                            <span class="badge bg-warning badge-tipo">Gravador</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-teste p-3 text-center" onclick="selecionarTeste('EL8600')">
+                            <i class="bi bi-hdd-stack" style="font-size: 40px; color: #dc3545;"></i>
+                            <h5 class="mt-2">EL8600</h5>
+                            <span class="badge bg-danger badge-tipo">Industrial</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMULÁRIO DE TESTE -->
+                <div id="formTeste" style="display: none;">
+                    <h4 class="mb-3">2. Dados do Teste</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Número de Série *</label>
+                                    <input id="numeroSerie" class="form-control form-control-lg" placeholder="Digite ou bip o código">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Produto *</label>
+                                    <select id="produtoTeste" class="form-select form-select-lg">
+                                        <option value="">Selecione um produto</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Operador *</label>
+                                    <select id="operadorTeste" class="form-select form-select-lg">
+                                        <option value="">Selecione o operador</option>
+                                        <option value="Admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Tipo de Teste</label>
+                                    <input id="tipoSelecionado" class="form-control form-control-lg" readonly>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg" onclick="iniciarTeste()">
+                                    <i class="bi bi-play-circle"></i> Iniciar Teste
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXECUTANDO TESTE -->
+                <div id="executandoTeste" style="display: none;">
+                    <h4 class="mb-3">3. Executando Teste...</h4>
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="timer text-primary" id="timer">00:00</div>
+                            <p class="text-muted mt-3">Teste em andamento. Aguarde...</p>
+                            <div class="progress" style="height: 30px;">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-success btn-lg me-2" onclick="finalizarTeste('Aprovado')">
+                                    <i class="bi bi-check-circle"></i> Aprovar
+                                </button>
+                                <button class="btn btn-danger btn-lg" onclick="finalizarTeste('Reprovado')">
+                                    <i class="bi bi-x-circle"></i> Reprovar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTADO -->
+                <div id="resultadoTeste" class="resultado-box">
+                    <i id="iconeResultado" style="font-size: 60px;"></i>
+                    <h2 id="textoResultado" class="mt-3"></h2>
+                    <p id="detalheResultado" class="mb-3"></p>
+                    <button class="btn btn-primary" onclick="novoTeste()">
+                        <i class="bi bi-arrow-clockwise"></i> Novo Teste
+                    </button>
+                </div>
+            </div>
+
+            <!-- HISTÓRICO LATERAL -->
+            <div class="col-lg-4">
+                <h4 class="mb-3">Últimos Testes Hoje</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="historicoHoje">
+                            <p class="text-center text-muted">Nenhum teste realizado hoje</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6>Resumo do Dia</h6>
+                        <div class="d-flex justify-content-between mt-3">
+                            <span>Total:</span>
+                            <strong id="totalHoje">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-success">Aprovados:</span>
+                            <strong id="aprovadosHoje" class="text-success">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-danger">Reprovados:</span>
+                            <strong id="reprovadosHoje" class="text-danger">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let testeSelecionado = '';
+        let timerInterval;
+        let segundos = 0;
+
+        // Inicia LocalStorage de testes
+        if (!localStorage.getItem('testes')) {
+            localStorage.setItem('testes', JSON.stringify([]));
+        }
+
+        // Carrega produtos do sistema principal
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarProdutos();
+            carregarHistoricoHoje();
+        });
+
+        function carregarProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const select = document.getElementById('produtoTeste');
+            
+            if (produtos.length === 0) {
+                select.innerHTML = '<option value="">Cadastre produtos primeiro</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">Selecione um produto</option>';
+            produtos.forEach(p => {
+                select.innerHTML += `<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`;
+            });
+        }
+
+        function selecionarTeste(tipo) {
+            testeSelecionado = tipo;
+            
+            // Marca card ativo
+            document.querySelectorAll('.card-teste').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            // Mostra form
+            document.getElementById('formTeste').style.display = 'block';
+            document.getElementById('tipoSelecionado').value = tipo;
+            document.getElementById('executandoTeste').style.display = 'none';
+            document.getElementById('resultadoTeste').style.display = 'none';
+            
+            // Foca no campo série
+            document.getElementById('numeroSerie').focus();
+        }
+
+        function iniciarTeste() {
+            const serie = document.getElementById('numeroSerie').value.trim();
+            const produto = document.getElementById('produtoTeste').value;
+            const operador = document.getElementById('operadorTeste').value;
+
+            if (!serie || !produto || !operador) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
+
+            // Esconde form e mostra execução
+            document.getElementById('formTeste').style.display = 'none';
+            document.getElementById('executandoTeste').style.display = 'block';
+            
+            // Inicia timer
+            segundos = 0;
+            timerInterval = setInterval(() => {
+                segundos++;
+                const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+                const sec = (segundos % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${min}:${sec}`;
+                
+                // Simula progresso
+                const progresso = Math.min((segundos / 10) * 100, 100);
+                document.getElementById('progressBar').style.width = progresso + '%';
+            }, 1000);
+        }
+
+        function finalizarTeste(resultado) {
+            clearInterval(timerInterval);
+            
+            const serie = document.getElementById('numeroSerie').value.trim();
+            const produto = document.getElementById('produtoTeste').value;
+            const operador = document.getElementById('operadorTeste').value;
+            
+            // Salva no LocalStorage
+            const testes = JSON.parse(localStorage.getItem('testes'));
+            const novoTeste = {
+                id: Date.now().toString(),
+                serie: serie,
+                produto: produto,
+                tipo: testeSelecionado,
+                operador: operador,
+                resultado: resultado,
+                duracao: segundos,
+                data: new Date().toISOString()
+            };
+            testes.push(novoTeste);
+            localStorage.setItem('testes', JSON.stringify(testes));
+
+            // Mostra resultado
+            document.getElementById('executandoTeste').style.display = 'none';
+            const boxResultado = document.getElementById('resultadoTeste');
+            boxResultado.style.display = 'block';
+            boxResultado.className = 'resultado-box ' + (resultado === 'Aprovado' ? 'aprovado' : 'reprovado');
+            
+            document.getElementById('iconeResultado').className = resultado === 'Aprovado' 
+                ? 'bi bi-check-circle-fill' 
+                : 'bi bi-x-circle-fill';
+            document.getElementById('textoResultado').innerText = resultado;
+            document.getElementById('detalheResultado').innerText = 
+                `Série: ${serie} | Produto: ${produto} | Duração: ${segundos}s`;
+            
+            carregarHistoricoHoje();
+        }
+
+        function novoTeste() {
+            document.getElementById('resultadoTeste').style.display = 'none';
+            document.getElementById('formTeste').style.display = 'block';
+            document.getElementById('numeroSerie').value = '';
+            document.getElementById('numeroSerie').focus();
+            document.getElementById('timer').innerText = '00:00';
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        function carregarHistoricoHoje() {
+            const testes = JSON.parse(localStorage.getItem('testes')) || [];
+            const hoje = new Date().toDateString();
+            const testesHoje = testes.filter(t => new Date(t.data).toDateString() === hoje);
+            
+            // Atualiza contadores
+            document.getElementById('totalHoje').innerText = testesHoje.length;
+            document.getElementById('aprovadosHoje').innerText = testesHoje.filter(t => t.resultado === 'Aprovado').length;
+            document.getElementById('reprovadosHoje').innerText = testesHoje.filter(t => t.resultado === 'Reprovado').length;
+            
+            // Atualiza lista
+            const divHistorico = document.getElementById('historicoHoje');
+            if (testesHoje.length === 0) {
+                divHistorico.innerHTML = '<p class="text-center text-muted">Nenhum teste realizado hoje</p>';
+                return;
+            }
+            
+            divHistorico.innerHTML = testesHoje.reverse().slice(0, 10).map(t => `
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <div>
+                        <strong>${t.serie}</strong><br>
+                        <small class="text-muted">${t.tipo}</small>
+                    </div>
+                    <span class="badge ${t.resultado === 'Aprovado' ? 'bg-success' : 'bg-danger'}">
+                        ${t.resultado}
+                    </span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
