@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etiquetas - Leitores PRO</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f6f9;padding:20px}
+.header-etq{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
+.etiqueta-preview{
+    width:400px;height:500px;border:2px solid #000;background:white;
+    margin:0 auto;padding:0;font-size:9px;line-height:1.1;position:relative;
+}
+.etq-table{width:100%;height:100%;border-collapse:collapse}
+.etq-table td{border:1px solid #000;padding:2px 4px;vertical-align:middle}
+.etq-selo{width:80px;height:80px;border:3px solid #000;border-radius:50%;margin:5px auto;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8px;font-weight:bold;text-align:center}
+.etq-selo-num{font-size:24px;line-height:1}
+.etq-barcode{text-align:center;padding:5px}
+.etq-logo{text-align:center;font-weight:bold;font-size:10px}
+.etq-data{font-size:8px}
+@media print{
+    body{background:white;padding:0}
+    .no-print{display:none}
+   .etiqueta-preview{margin:0;border:none}
+</style>
+</head>
+<body>
+<div class="container-fluid no-print">
+    <div class="header-etq">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="bi bi-printer"></i> Gerador de Etiquetas EL250</h2>
+                <p class="mb-0">Padrão Elgin igual da foto</p>
+            </div>
+            <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header"><h5>Dados da Etiqueta</h5></div>
+                <div class="card-body">
+                    <div class="mb-2"><label class="small">CNPJ</label><input id="cnpj" class="form-control form-control-sm" value="14.200.166/0005-90"></div>
+                    <div class="mb-2"><label class="small">Código do Produto</label><input id="codProduto" class="form-control form-control-sm" value="46ELP250BC000"></div>
+                    <div class="mb-2"><label class="small">Descrição</label><input id="descProduto" class="form-control form-control-sm" value="LEITOR COD BARRAS 1D 2D ELGIN BEMA EL250"></div>
+                    <div class="mb-2"><label class="small">Vol.</label><input id="vol" class="form-control form-control-sm" value="01"></div>
+                    <div class="mb-2"><label class="small">QTD.</label><input id="qtd" class="form-control form-control-sm" value="01"></div>
+                    <div class="mb-2"><label class="small">Código Elgin</label><input id="codElgin" class="form-control form-control-sm" value="4ELP250BC001"></div>
+                    <div class="mb-2"><label class="small">Código EAN 13</label><input id="ean13" class="form-control form-control-sm" value="7896658001601"></div>
+                    <div class="mb-2"><label class="small">Lote</label><input id="lote" class="form-control form-control-sm" value="3 2 2 4"></div>
+                    <div class="mb-2"><label class="small">Número Série</label><input id="serie" class="form-control form-control-sm" value="26050001"></div>
+                    <div class="mb-2"><label class="small">Data</label><input id="data" class="form-control form-control-sm" value="21/08/2025"></div>
+                    <button class="btn btn-primary w-100 mt-2" onclick="gerarEtiqueta()"><i class="bi bi-arrow-clockwise"></i> Atualizar Preview</button>
+                    <button class="btn btn-success w-100 mt-2" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
+                    <button class="btn btn-info w-100 mt-2" onclick="gerarZPL()"><i class="bi bi-file-code"></i> Gerar ZPL</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header"><h5>Preview</h5></div>
+                <div class="card-body text-center">
+                    <div class="etiqueta-preview" id="etiquetaPreview"></div>
+                    <div class="mt-3">
+                        <small class="text-muted">Tamanho: 100mm x 125mm - Compatível Zebra ZT411</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3" id="cardZPL" style="display:none">
+                <div class="card-header"><h6>Código ZPL - Copiar pra Zebra</h6></div>
+                <div class="card-body">
+                    <textarea id="codigoZPL" class="form-control" rows="8" style="font-family:monospace;font-size:11px"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', gerarEtiqueta);
+
+function gerarEtiqueta(){
+    const cnpj = document.getElementById('cnpj').value;
+    const codProduto = document.getElementById('codProduto').value;
+    const descProduto = document.getElementById('descProduto').value;
+    const vol = document.getElementById('vol').value;
+    const qtd = document.getElementById('qtd').value;
+    const codElgin = document.getElementById('codElgin').value;
+    const ean13 = document.getElementById('ean13').value;
+    const lote = document.getElementById('lote').value;
+    const serie = document.getElementById('serie').value;
+    const data = document.getElementById('data').value;
+    
+    const html = `
+        <table class="etq-table">
+            <tr>
+                <td rowspan="3" style="width:80px;text-align:center">
+                    <div class="etq-selo">
+                        CONTROLE DE<br>QUALIDADE
+                        <div class="etq-selo-num">8</div>
+                    </div>
+                </td>
+                <td colspan="3" style="text-align:center;font-size:8px">
+                    CNPJ ${cnpj}
+                </td>
+            </tr>
+            <tr>
+                <td style="width:140px">
+                    <strong style="font-size:7px">CÓDIGO DO PRODUTO ELGIN</strong><br>
+                    ${codProduto}
+                </td>
+                <td style="width:100px;text-align:center">
+                    <strong style="font-size:7px">CÓDIGO ELGIN</strong><br>
+                    ${codElgin}
+                </td>
+                <td rowspan="2" style="width:80px" class="etq-barcode">
+                    <svg id="barcodeSerie"></svg>
+                    <div style="font-size:7px">${serie}</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="font-size:8px">${descProduto}</td>
+                <td style="text-align:center">
+                    <strong style="font-size:7px">CÓDIGO EAN 13</strong><br>
+                    ${ean13}
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:center">
+                    <strong style="font-size:7px">Vol.</strong><br>${vol}
+                </td>
+                <td>
+                    <strong style="font-size:7px">QTD.:01</strong><br>
+                    ${qtd}
+                </td>
+                <td style="text-align:center">
+                    <strong style="font-size:7px">LOTE</strong><br>
+                    ${lote}
+                </td>
+                <td class="etq-barcode">
+                    <svg id="barcodeEAN"></svg>
+                    <div style="font-size:7px">${ean13}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align:center" class="etq-logo">
+                    <div style="font-size:14px;font-weight:bold">elgin</div>
+                </td>
+                <td colspan="2" style="text-align:right" class="etq-data">
+                    DATA ${data}
+                </td>
+            </tr>
+        </table>
+    `;
+    
+    document.getElementById('etiquetaPreview').innerHTML = html;
+    
+    // Gera códigos de barras
+    setTimeout(() => {
+        JsBarcode("#barcodeSerie", serie, {
+            format: "CODE128",
+            width: 1,
+            height: 30,
+            displayValue: false,
+            margin: 0
+        });
+        JsBarcode("#barcodeEAN", ean13, {
+            format: "EAN13",
+            width: 1,
+            height: 30,
+            displayValue: false,
+            margin: 0
+        });
+    }, 100);
+}
+
+function gerarZPL(){
+    const serie = document.getElementById('serie').value;
+    const ean13 = document.getElementById('ean13').value;
+    const data = document.getElementById('data').value;
+    const descProduto = document.getElementById('descProduto').value;
+    
+    const zpl = `^XA
+^FO50,50^GB300,300,3^FS
+^FO150,80^A0N,20^FDCONTROLE DE^FS
+^FO150,105^A0N,20,20^FDQUALIDADE^FS
+^FO200,140^A0N,50,50^FD8^FS
+^FO380,50^A0N,15,15^FDCNPJ 14.200.166/0005-90^FS
+^FO380,80^A0N,12,12^FDCODIGO DO PRODUTO ELGIN^FS
+^FO380,100^A0N,18,18^FD46ELP250BC000^FS
+^FO580,80^A0N,12,12^FDCODIGO ELGIN^FS
+^FO580,100^A0N,18,18^FD4ELP250BC001^FS
+^FO700,80^BY1^BCN,60,Y,N^FD${serie}^FS
+^FO380,140^A0N,15,15^FD${descProduto}^FS
+^FO580,140^A0N,12,12^FDCODIGO EAN 13^FS
+^FO580,160^A0N,18,18^FD${ean13}^FS
+^FO50,320^A0N,12,12^FDVol.^FS
+^FO50,340^A0N,18,18^FD01^FS
+^FO380,320^A0N,12,12^FDQTD.:01^FS
+^FO380,340^A0N,18,18^FD01^FS
+^FO580,320^A0N,12,12^FDLOTE^FS
+^FO580,340^A0N,18,18^FD3 2 2 4^FS
+^FO700,320^BY1^BEN,60,Y,N^FD${ean13}^FS
+^FO380,420^A0N,25,25^FDelgin^FS
+^FO650,420^A0N,15,15^FDDATA ${data}^FS
+^XZ`;
+    
+    document.getElementById('codigoZPL').value = zpl;
+    document.getElementById('cardZPL').style.display = 'block';
+}
+
+function carregarDoTeste(){
+    // Pega último teste aprovado e preenche série
+    const testes = JSON.parse(localStorage.getItem('testes') || '[]');
+    const ultimoOK = testes.find(t => t.resultado === 'APROVADO');
+    if(ultimoOK){
+        document.getElementById('serie').value = ultimoOK.serie;
+        gerarEtiqueta();
+    }
+}
+</script>
+</body>
+</html>
