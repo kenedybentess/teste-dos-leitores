@@ -41,8 +41,8 @@ body{background:#f4f6f9;padding:20px}
 .etq-manaus{font-size:5.5px;text-align:center;padding:3px;line-height:1.2}
 @media print{
     body{background:white;padding:0;margin:0}
-   .no-print{display:none!important}
- .etiqueta-preview{margin:0;border:none;page-break-inside:avoid}
+  .no-print{display:none!important}
+.etiqueta-preview{margin:0;border:none;page-break-inside:avoid}
    @page{size:100mm 90mm;margin:0}
 }
 .zpl-box{background:#1e1e1e;color:#d4d4d4;padding:15px;border-radius:8px;font-family:'Courier New',monospace;font-size:11px;overflow-x:auto;white-space:pre;max-height:400px;overflow-y:auto}
@@ -174,8 +174,40 @@ body{background:#f4f6f9;padding:20px}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    gerarEtiqueta();
-    
+    // Verifica se veio do teste
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoLoad = urlParams.get('auto');
+
+    if(autoLoad === 'true'){
+        // Carrega dados do último teste OK
+        const ultimoTeste = JSON.parse(sessionStorage.getItem('ultimoTesteOK') || '{}');
+        if(ultimoTeste.serie){
+            document.getElementById('serie').value = ultimoTeste.serie;
+            document.getElementById('codProduto').value = ultimoTeste.produtoCodigo;
+            document.getElementById('data').value = new Date(ultimoTeste.data).toLocaleDateString('pt-BR');
+
+            const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
+            const prod = produtos.find(p => p.codigo === ultimoTeste.produtoCodigo);
+            if(prod){
+                document.getElementById('descProduto').value = prod.nome;
+                document.getElementById('codElgin').value = prod.modelo || '46EL250USC01';
+            }
+
+            gerarEtiqueta();
+
+            // Pergunta número do inspetor
+            setTimeout(() => {
+                const num = prompt('Número do Inspetor de Qualidade:', '8');
+                if(num) {
+                    document.getElementById('numInspetor').value = num;
+                    gerarEtiqueta();
+                }
+            }, 500);
+        }
+    } else {
+        gerarEtiqueta();
+    }
+
     document.querySelectorAll('input:not([readonly]), select').forEach(input => {
         input.addEventListener('input', () => {
             clearTimeout(window.previewTimeout);
@@ -312,76 +344,4 @@ function gerarZPL(){
 ^FO20,50^A0N,12,12^FD${descProduto}^FS
 ^FO20,70^A0N,10,10^FDCODIGO DO PRODUTO ELGIN^FS
 ^FO20,85^A0N,16,16^FD${codProduto}^FS
-^FO20,105^A0N,10,10^FDQTD.:01 ${qtd}^FS
-^FO150,105^A0N,10,10^FDVOL:01 ${vol}^FS
-^FO580,50^GB120,120,2^FS
-^FO640,60^GC120,120^FS
-^FO640,55^A0N,12,12^FDCONTROLE DE^FS
-^FO640,70^A0N,12,12^FDQUALIDADE^FS
-^FO640,90^A0N,40,40^FD${numInspetor}^FS
-^FO640,135^A0N,10,10^FD${statusQualidade}^FS
-^FO20,130^A0N,10,10^FDCODIGO ELGIN^FS
-^FO20,145^A0N,16,16^FD${codElgin}^FS
-^FO200,130^A0N,10,10^FDCODIGO EAN 13^FS
-^FO200,145^A0N,16,16^FD${ean13}^FS
-^FO20,170^BY1^BCN,35,Y,N,N^FD${ean13}^FS
-^FO20,215^A0N,10,10^FDNUMERO DE SERIE^FS
-^FO20,230^BY1^BCN,35,Y,N,N^FD${serie}^FS
-^FO580,200^A0N,11,11^FD${codAdicional}^FS
-^FO20,280^A0N,9,9^FDPRODUZIDO NO^FS
-^FO20,292^A0N,9,9^FDPOLO INDUSTRIAL^FS
-^FO20,304^A0N,9,9^FDDE MANAUS^FS
-^FO20,320^A0N,8,8^FDCONHECA A AMAZONIA^FS
-^FO450,295^A0N,14,14^FDDATA ${data}^FS
-^XZ`;
-    
-    document.getElementById('codigoZPL').innerText = zpl;
-    document.getElementById('cardZPL').style.display = 'block';
-    document.getElementById('cardZPL').scrollIntoView({behavior:'smooth'});
-}
-
-function copiarZPL(){
-    const zpl = document.getElementById('codigoZPL').innerText;
-    navigator.clipboard.writeText(zpl).then(() => {
-        alert('ZPL copiado! Cole no ZebraDesigner.');
-    });
-}
-
-function baixarZPL(){
-    const zpl = document.getElementById('codigoZPL').innerText;
-    if(!zpl) return alert('Gere o ZPL primeiro');
-    
-    const blob = new Blob([zpl], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `etiqueta_EL250_${Date.now()}.zpl`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function carregarDoTeste(){
-    const testes = JSON.parse(localStorage.getItem('testes') || '[]');
-    const ultimoOK = testes.find(t => t.resultado === 'APROVADO');
-    
-    if(ultimoOK){
-        document.getElementById('serie').value = ultimoOK.serie;
-        document.getElementById('codProduto').value = ultimoOK.produtoCodigo;
-        
-        const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
-        const prod = produtos.find(p => p.codigo === ultimoOK.produtoCodigo);
-        if(prod){
-            document.getElementById('descProduto').value = prod.nome;
-            document.getElementById('codElgin').value = prod.modelo || '46EL250USC01';
-        }
-        
-        document.getElementById('data').value = new Date(ultimoOK.data).toLocaleDateString('pt-BR');
-        gerarEtiqueta();
-        alert('Dados carregados do último teste aprovado!');
-    } else {
-        alert('Nenhum teste aprovado encontrado.');
-    }
-}
-</script>
-</body>
-</html>
+^FO20,105^A0N,10,10^FDQTD.:
