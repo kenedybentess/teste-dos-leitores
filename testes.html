@@ -1,346 +1,337 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Testes - Leitores PRO</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Tahoma,sans-serif}
-body{background:#f4f6f9;padding:20px}
-.header-testes{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
-.card-teste{border:none;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.08)}
-.area-leitura{background:#fff3cd;border:3px dashed #ffc107;padding:40px;border-radius:15px;text-align:center;min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.area-leitura.ativa{background:#d1e7dd;border-color:#198754}
-.area-leitura.erro{background:#f8d7da;border-color:#dc3545}
-.codigo-item{padding:15px;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;gap:15px}
-.codigo-item.pendente{background:#fff3cd;border-left:4px solid #ffc107}
-.codigo-item.ok{background:#d1e7dd;border-left:4px solid #198754}
-.codigo-item.erro{background:#f8d7da;border-left:4px solid #dc3545}
-.badge-numero{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
-#inputLeitura{position:absolute;left:-9999px;opacity:0}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testes EL250 - Leitores PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Tahoma,sans-serif}
+        body{background:#f4f6f9;padding:20px}
+       .header-teste{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
+       .step-card{border:3px solid #dee2e6;border-radius:15px;padding:20px;margin-bottom:15px;transition:.3s}
+       .step-card.ativo{border-color:#ffc107;background:#fff3cd;box-shadow:0 5px 15px rgba(255,193,7,.3)}
+       .step-card.concluido{border-color:#198754;background:#d1e7dd}
+       .step-card.erro{border-color:#dc3545;background:#f8d7da}
+       .step-numero{width:40px;height:40px;background:#6c757d;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
+       .step-card.ativo.step-numero{background:#ffc107;color:#000}
+       .step-card.concluido.step-numero{background:#198754}
+       .step-card.erro.step-numero{background:#dc3545}
+       .codigo-lido{font-family:monospace;font-size:18px;font-weight:bold;color:#0d6efd}
+        #reader{border:3px solid #0d6efd;border-radius:10px;max-width:500px;margin:0 auto}
+       .scan-ativo{background:#fff3cd!important;border:3px solid #ffc107!important;font-size:24px!important}
+       .input-leitura{font-size:20px;padding:15px;text-align:center}
+    </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="header-testes">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2><i class="bi bi-clipboard-check"></i> Teste de Leitores EL250</h2>
-                <p class="mb-0">Bipe os códigos na sequência correta</p>
-            </div>
-            <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card card-teste mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Iniciar Teste</h5>
+    <div class="container-fluid">
+        <div class="header-teste">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-upc-scan"></i> Teste EL250 - Leitura Sequencial</h2>
+                    <p class="mb-0">Bipe os 4 códigos na ordem correta</p>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="fw-bold">Produto</label>
-                        <select id="produtoTeste" class="form-select" onchange="carregarProduto()">
-                            <option value="">Selecione...</option>
+                <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
+            </div>
+        </div>
+
+        <!-- CONFIGURAÇÃO -->
+        <div class="card mb-4" id="configCard">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label>Produto *</label>
+                        <select id="produtoSel" class="form-select form-select-lg"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Operador *</label>
+                        <select id="operadorSel" class="form-select form-select-lg"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Número de Série *</label>
+                        <input id="serieSel" class="form-control form-control-lg" placeholder="SN do leitor">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Modo Leitura</label>
+                        <select id="modoLeitura" class="form-select form-select-lg">
+                            <option value="usb">Leitor USB EL250</option>
+                            <option value="camera">Câmera</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Modelo</label>
-                        <input id="modeloLeitor" class="form-control" readonly placeholder="Selecione o produto">
+                </div>
+                <button class="btn btn-success btn-lg w-100 mt-3" onclick="iniciarSequencia()">
+                    <i class="bi bi-play-circle"></i> INICIAR SEQUÊNCIA DE TESTES
+                </button>
+            </div>
+        </div>
+
+        <!-- CÂMERA -->
+        <div id="areaScanner" class="card mb-4" style="display:none;">
+            <div class="card-body text-center">
+                <h5><i class="bi bi-camera"></i> Aponte para: <span id="codigoEsperado" class="text-primary"></span></h5>
+                <div id="reader"></div>
+                <button class="btn btn-secondary mt-3" onclick="pararScanner()">Fechar Câmera</button>
+            </div>
+        </div>
+
+        <!-- SEQUÊNCIA DE LEITURA -->
+        <div id="areaSequencia" style="display:none;">
+            <div class="alert alert-warning">
+                <strong><i class="bi bi-info-circle"></i> Instrução:</strong> Clique no campo amarelo e bipe o código com o leitor USB. O leitor deve enviar Enter no final.
+            </div>
+            
+            <!-- STEP 1: QR CODE -->
+            <div class="step-card" id="step1">
+                <div class="d-flex align-items-center">
+                    <div class="step-numero me-3">1</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">QR Code</h5>
+                        <small class="text-muted">Esperado: 6922711051772</small>
+                        <div class="mt-2">
+                            <input type="text" class="form-control input-leitura" id="input1" placeholder="Clique aqui e bipe" autocomplete="off">
+                            <div class="codigo-lido mt-2" id="lido1"></div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Número de Série *</label>
-                        <input id="serieTeste" class="form-control" placeholder="Bipe ou digite a série" maxlength="20">
+                    <div class="ms-3">
+                        <i class="bi bi-qr-code-scan" style="font-size:40px;color:#6c757d"></i>
                     </div>
-                    <button class="btn btn-success w-100" id="btnIniciar" onclick="iniciarTeste()">
-                        <i class="bi bi-play-fill"></i> Iniciar Teste
+                </div>
+            </div>
+
+            <!-- STEP 2: CÓDIGO 1D 1 -->
+            <div class="step-card" id="step2">
+                <div class="d-flex align-items-center">
+                    <div class="step-numero me-3">2</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Código de Barras 1D</h5>
+                        <small class="text-muted">Esperado: 2 112345 678917</small>
+                        <div class="mt-2">
+                            <input type="text" class="form-control input-leitura" id="input2" placeholder="Aguardando..." autocomplete="off" disabled>
+                            <div class="codigo-lido mt-2" id="lido2"></div>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: CÓDIGO 1D 2 -->
+            <div class="step-card" id="step3">
+                <div class="d-flex align-items-center">
+                    <div class="step-numero me-3">3</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Código de Barras 1D</h5>
+                        <small class="text-muted">Esperado: 6901028075763</small>
+                        <div class="mt-2">
+                            <input type="text" class="form-control input-leitura" id="input3" placeholder="Aguardando..." autocomplete="off" disabled>
+                            <div class="codigo-lido mt-2" id="lido3"></div>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: FIRMWARE -->
+            <div class="step-card" id="step4">
+                <div class="d-flex align-items-center">
+                    <div class="step-numero me-3">4</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">Versão de Firmware</h5>
+                        <small class="text-muted">Bipe o código de versão</small>
+                        <div class="mt-2">
+                            <input type="text" class="form-control input-leitura" id="input4" placeholder="Aguardando..." autocomplete="off" disabled>
+                            <div class="codigo-lido mt-2" id="lido4"></div>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <i class="bi bi-cpu" style="font-size:40px;color:#6c757d"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTADO FINAL -->
+            <div id="resultadoFinal" class="card mt-4" style="display:none;">
+                <div class="card-body text-center">
+                    <h3 id="textoResultado"></h3>
+                    <p id="detalheResultado" class="mb-3"></p>
+                    <button class="btn btn-primary btn-lg" onclick="novoTeste()">
+                        <i class="bi bi-arrow-clockwise"></i> Novo Teste
                     </button>
                 </div>
             </div>
-
-            <div class="card card-teste" id="areaTestes" style="display:none">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0"><i class="bi bi-list-ol"></i> Sequência de Testes</h5>
-                </div>
-                <div class="card-body" id="listaCodigos"></div>
-            </div>
-        </div>
-
-        <div class="col-md-7">
-            <div class="card card-teste">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-upc-scan"></i> Área de Leitura</h5>
-                </div>
-                <div class="card-body">
-                    <div class="area-leitura" id="areaLeitura">
-                        <i class="bi bi-upc-scan" style="font-size:80px;color:#6c757d"></i>
-                        <h4 class="mt-3 text-muted">Aguardando início do teste...</h4>
-                        <p class="text-muted">Selecione o produto e informe a série</p>
-                    </div>
-                    <input type="text" id="inputLeitura" autocomplete="off">
-                    <div class="mt-3 text-center">
-                        <button class="btn btn-danger" onclick="cancelarTeste()" id="btnCancelar" style="display:none">
-                            <i class="bi bi-x-circle"></i> Cancelar Teste
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-let produtoAtual = null;
-let codigosLidos = [];
-let indiceAtual = 0;
-let testeAtivo = false;
+    <script>
+        let html5QrcodeScanner, stepAtual = 0, dadosTeste = {};
+        const codigosEsperados = {
+            1: '6922711051772',
+            2: '2112345678917',
+            3: '6901028075763',
+            4: null
+        };
 
-document.addEventListener('DOMContentLoaded', () => {
-    carregarProdutos();
+        if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarProdutos();
+            carregarOperadores();
+            
+            // Captura Enter do leitor USB em qualquer input
+            document.addEventListener('keypress', e => {
+                if (e.key === 'Enter' && stepAtual > 0) {
+                    e.preventDefault();
+                    const input = document.getElementById(`input${stepAtual}`);
+                    if (input &&!input.disabled && input.value.trim()) {
+                        validarLeitura(stepAtual, input.value.trim());
+                    }
+                }
+            });
+        });
 
-    // Login básico
-    if(!sessionStorage.getItem('operadorNome')){
-        sessionStorage.setItem('operadorNome', 'Admin');
-    }
-
-    // Input invisível pra capturar leitura
-    document.getElementById('inputLeitura').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter' && testeAtivo){
-            processarLeitura(e.target.value.trim());
-            e.target.value = '';
-        }
-    });
-});
-
-function carregarProdutos(){
-    const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
-    const select = document.getElementById('produtoTeste');
-    select.innerHTML = '<option value="">Selecione...</option>' + 
-        produtos.map(p => `<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`).join('');
-}
-
-function carregarProduto(){
-    const codigo = document.getElementById('produtoTeste').value;
-    if(!codigo) {
-        document.getElementById('modeloLeitor').value = '';
-        return;
-    }
-
-    const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
-    produtoAtual = produtos.find(p => p.codigo === codigo);
-
-    if(produtoAtual){
-        document.getElementById('modeloLeitor').value = produtoAtual.modelo || produtoAtual.codigo;
-    }
-}
-
-function iniciarTeste(){
-    const serie = document.getElementById('serieTeste').value.trim();
-    if(!produtoAtual) return alert('Selecione o produto');
-    if(!serie) return alert('Informe o número de série');
-    if(!produtoAtual.codigos || produtoAtual.codigos.length === 0) return alert('Produto sem códigos cadastrados');
-
-    // Verifica se série já foi testada
-    const testes = JSON.parse(localStorage.getItem('testes') || '[]');
-    if(testes.some(t => t.serie === serie)){
-        return alert('Esta série já foi testada!');
-    }
-
-    testeAtivo = true;
-    indiceAtual = 0;
-    codigosLidos = [];
-
-    document.getElementById('serieTeste').disabled = true;
-    document.getElementById('produtoTeste').disabled = true;
-    document.getElementById('btnIniciar').disabled = true;
-    document.getElementById('areaTestes').style.display = 'block';
-    document.getElementById('btnCancelar').style.display = 'inline-block';
-
-    renderizarSequencia();
-    atualizarAreaLeitura();
-    document.getElementById('inputLeitura').focus();
-}
-
-function renderizarSequencia(){
-    const lista = document.getElementById('listaCodigos');
-    lista.innerHTML = produtoAtual.codigos.map((cod, idx) => {
-        let classe = 'pendente';
-        let icone = 'bi-clock';
-        if(idx < indiceAtual) {
-            classe = 'ok';
-            icone = 'bi-check-circle-fill';
-        } else if(idx === indiceAtual && testeAtivo){
-            classe = 'pendente';
-            icone = 'bi-arrow-right-circle-fill';
+        function carregarProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            document.getElementById('produtoSel').innerHTML = '<option value="">Selecione...</option>' + 
+                produtos.filter(p => p.tipo === 'EL250').map(p => `<option value="${p.codigo}" data-nome="${p.nome}" data-modelo="${p.modelo}">${p.codigo} - ${p.nome}</option>`).join('');
         }
 
-        return `
-            <div class="codigo-item ${classe}">
-                <div class="badge-numero bg-secondary text-white">${idx + 1}</div>
-                <div class="flex-grow-1">
-                    <strong>${cod.nome}</strong>
-                    <div class="small text-muted">${cod.valor}</div>
-                </div>
-                <i class="bi ${icone}" style="font-size:24px"></i>
-            </div>
-        `;
-    }).join('');
-}
+        function carregarOperadores() {
+            const ops = JSON.parse(localStorage.getItem('operadores')) || [];
+            document.getElementById('operadorSel').innerHTML = '<option value="">Selecione...</option>' + 
+                ops.filter(o => o.status === 'Ativo').map(o => `<option value="${o.nome}">${o.matricula} - ${o.nome}</option>`).join('');
+        }
 
-function atualizarAreaLeitura(){
-    const area = document.getElementById('areaLeitura');
-    if(indiceAtual >= produtoAtual.codigos.length){
-        finalizarTeste('APROVADO');
-        return;
-    }
+        function iniciarSequencia() {
+            if (!document.getElementById('produtoSel').value ||!document.getElementById('operadorSel').value ||!document.getElementById('serieSel').value) {
+                return alert('Preencha Produto, Operador e Série');
+            }
+            
+            dadosTeste = {
+                produto: document.getElementById('produtoSel').value,
+                operador: document.getElementById('operadorSel').value,
+                serie: document.getElementById('serieSel').value,
+                leituras: {}
+            };
+            
+            document.getElementById('configCard').style.display = 'none';
+            document.getElementById('areaSequencia').style.display = 'block';
+            
+            ativarStep(1);
+            if (document.getElementById('modoLeitura').value === 'camera') ativarCamera();
+        }
 
-    const codAtual = produtoAtual.codigos[indiceAtual];
-    area.className = 'area-leitura ativa';
-    area.innerHTML = `
-        <i class="bi bi-upc-scan" style="font-size:80px;color:#198754"></i>
-        <h4 class="mt-3">Aguardando leitura ${indiceAtual + 1} de ${produtoAtual.codigos.length}</h4>
-        <h5 class="text-primary">${codAtual.nome}</h5>
-        <p class="text-muted">Bipe o código: <strong>${codAtual.valor}</strong></p>
-    `;
-    document.getElementById('inputLeitura').focus();
-}
+        function ativarStep(num) {
+            stepAtual = num;
+            document.querySelectorAll('.step-card').forEach((card, i) => {
+                card.classList.remove('ativo');
+                if (i + 1 === num) card.classList.add('ativo');
+            });
+            
+            const input = document.getElementById(`input${num}`);
+            input.disabled = false;
+            input.classList.add('scan-ativo');
+            input.focus();
+            input.select();
+            
+            if (document.getElementById('modoLeitura').value === 'camera') {
+                document.getElementById('codigoEsperado').innerText = codigosEsperados[num] || 'Qualquer código';
+            }
+        }
 
-function processarLeitura(codigo){
-    if(!testeAtivo || indiceAtual >= produtoAtual.codigos.length) return;
+        function validarLeitura(step, codigo) {
+            if (!codigo) return;
+            
+            const esperado = codigosEsperados[step];
+            const codigoLimpo = codigo.replace(/\s/g,'');
+            const esperadoLimpo = esperado? esperado.replace(/\s/g,'') : null;
+            const correto =!esperado || codigoLimpo === esperadoLimpo;
+            
+            const input = document.getElementById(`input${step}`);
+            input.value = codigo;
+            input.classList.remove('scan-ativo');
+            
+            document.getElementById(`lido${step}`).innerHTML = `<i class="bi bi-${correto? 'check-circle-fill text-success' : 'x-circle-fill text-danger'}"></i> Lido: ${codigo} ${correto? '✓' : '✗'}`;
+            document.getElementById(`step${step}`).classList.remove('ativo');
+            document.getElementById(`step${step}`).classList.add(correto? 'concluido' : 'erro');
+            input.disabled = true;
+            
+            dadosTeste.leituras[step] = { codigo, correto, esperado };
+            
+            if (step < 4) {
+                setTimeout(() => ativarStep(step + 1), 800);
+            } else {
+                setTimeout(() => finalizarSequencia(), 800);
+            }
+        }
 
-    const esperado = produtoAtual.codigos[indiceAtual];
-    const area = document.getElementById('areaLeitura');
+        function finalizarSequencia() {
+            const todosCorretos = Object.values(dadosTeste.leituras).every(l => l.correto);
+            const resultado = todosCorretos? 'APROVADO' : 'REPROVADO';
+            
+            const teste = {
+                id: Date.now().toString(),
+                data: new Date().toISOString(),
+                tipo: 'EL250',
+                produtoCodigo: dadosTeste.produto,
+                serie: dadosTeste.serie,
+                operador: dadosTeste.operador,
+                resultado: resultado,
+                leituras: dadosTeste.leituras
+            };
+            
+            let testes = JSON.parse(localStorage.getItem('testes'));
+            testes.unshift(teste);
+            localStorage.setItem('testes', JSON.stringify(testes));
+            
+            document.getElementById('resultadoFinal').style.display = 'block';
+            document.getElementById('resultadoFinal').className = `card mt-4 ${todosCorretos? 'bg-success' : 'bg-danger'} text-white`;
+            document.getElementById('textoResultado').innerHTML = `<i class="bi bi-${todosCorretos? 'check' : 'x'}-circle-fill"></i> ${resultado}`;
+            document.getElementById('detalheResultado').innerText = `Série: ${dadosTeste.serie} | ${Object.values(dadosTeste.leituras).filter(l => l.correto).length}/4 códigos corretos`;
+            
+            pararScanner();
+        }
 
-    if(codigo === esperado.valor){
-        // Correto
-        codigosLidos.push({nome: esperado.nome, valor: codigo, correto: true});
-        indiceAtual++;
-        renderizarSequencia();
+        function ativarCamera() {
+            document.getElementById('areaScanner').style.display = 'block';
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
+            html5QrcodeScanner.render(codigo => {
+                const input = document.getElementById(`input${stepAtual}`);
+                if (input &&!input.disabled) {
+                    input.value = codigo;
+                    validarLeitura(stepAtual, codigo);
+                }
+            }, () => {});
+        }
 
-        area.className = 'area-leitura ativa';
-        area.innerHTML = `
-            <i class="bi bi-check-circle-fill" style="font-size:80px;color:#198754"></i>
-            <h4 class="mt-3 text-success">Correto!</h4>
-            <p>Código ${indiceAtual} de ${produtoAtual.codigos.length}</p>
-        `;
+        function pararScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                document.getElementById('areaScanner').style.display = 'none';
+            }
+        }
 
-        setTimeout(() => atualizarAreaLeitura(), 800);
-    } else {
-        // Errado
-        area.className = 'area-leitura erro';
-        area.innerHTML = `
-            <i class="bi bi-x-circle-fill" style="font-size:80px;color:#dc3545"></i>
-            <h4 class="mt-3 text-danger">Código Incorreto!</h4>
-            <p>Esperado: <strong>${esperado.valor}</strong></p>
-            <p>Lido: <strong>${codigo}</strong></p>
-        `;
-
-        setTimeout(() => {
-            finalizarTeste('REPROVADO', `Código ${indiceAtual + 1} incorreto. Esperado: ${esperado.valor}, Lido: ${codigo}`);
-        }, 2000);
-    }
-}
-
-function finalizarTeste(resultado, motivo = ''){
-    testeAtivo = false;
-
-    const teste = {
-        id: Date.now().toString(),
-        produtoCodigo: document.getElementById('produtoTeste').value,
-        modelo: document.getElementById('modeloLeitor').value,
-        serie: document.getElementById('serieTeste').value,
-        operador: sessionStorage.getItem('operadorNome') || 'Admin',
-        data: new Date().toISOString(),
-        resultado: resultado,
-        motivo: motivo,
-        codigosLidos: codigosLidos
-    };
-
-    let testes = JSON.parse(localStorage.getItem('testes') || '[]');
-    testes.unshift(teste);
-    localStorage.setItem('testes', JSON.stringify(testes));
-
-    // NOVO: Popup pra imprimir etiqueta se APROVADO
-    if(resultado === 'APROVADO'){
-        // Salva dados do último teste pra etiqueta
-        sessionStorage.setItem('ultimoTesteOK', JSON.stringify(teste));
-
-        // Mostra modal
-        const modalHtml = `
-            <div class="modal fade" id="modalImprimir" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title"><i class="bi bi-check-circle"></i> Teste Aprovado!</h5>
-                        </div>
-                        <div class="modal-body text-center">
-                            <i class="bi bi-printer" style="font-size:60px;color:#198754"></i>
-                            <h5 class="mt-3">Deseja imprimir a etiqueta agora?</h5>
-                            <p class="text-muted mb-0">Série: <strong>${teste.serie}</strong></p>
-                            <p class="text-muted">Produto: <strong>${teste.produtoCodigo}</strong></p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetarTeste()">
-                                <i class="bi bi-x"></i> Não, depois
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="irParaEtiquetas()">
-                                <i class="bi bi-printer-fill"></i> Sim, imprimir
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Remove modal anterior se existir
-        const modalExistente = document.getElementById('modalImprimir');
-        if(modalExistente) modalExistente.remove();
-
-        // Adiciona e abre o modal
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        const modal = new bootstrap.Modal(document.getElementById('modalImprimir'));
-        modal.show();
-
-    } else {
-        alert('Teste REPROVADO\nMotivo: ' + motivo);
-        resetarTeste();
-    }
-}
-
-function irParaEtiquetas(){
-    window.location.href = 'etiquetas.html?auto=true';
-}
-
-function resetarTeste(){
-    document.getElementById('serieTeste').value = '';
-    document.getElementById('serieTeste').disabled = false;
-    document.getElementById('produtoTeste').disabled = false;
-    document.getElementById('btnIniciar').disabled = false;
-    document.getElementById('areaTestes').style.display = 'none';
-    document.getElementById('btnCancelar').style.display = 'none';
-
-    const area = document.getElementById('areaLeitura');
-    area.className = 'area-leitura';
-    area.innerHTML = `
-        <i class="bi bi-upc-scan" style="font-size:80px;color:#6c757d"></i>
-        <h4 class="mt-3 text-muted">Aguardando início do teste...</h4>
-        <p class="text-muted">Selecione o produto e informe a série</p>
-    `;
-
-    codigosLidos = [];
-    indiceAtual = 0;
-    produtoAtual = null;
-}
-
-function cancelarTeste(){
-    if(confirm('Deseja realmente cancelar o teste?')){
-        finalizarTeste('REPROVADO', 'Teste cancelado pelo operador');
-    }
-}
-</script>
+        function novoTeste() {
+            stepAtual = 0;
+            dadosTeste = {};
+            document.getElementById('areaSequencia').style.display = 'none';
+            document.getElementById('resultadoFinal').style.display = 'none';
+            document.getElementById('configCard').style.display = 'block';
+            document.getElementById('serieSel').value = '';
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('ativo', 'concluido', 'erro');
+            });
+            document.querySelectorAll('.input-leitura').forEach(input => {
+                input.value = '';
+                input.disabled = true;
+                input.classList.remove('scan-ativo');
+            });
+            document.querySelectorAll('.codigo-lido').forEach(div => div.innerHTML = '');
+        }
+    </script>
 </body>
 </html>
