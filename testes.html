@@ -2,9 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Testes EL250 - FINAL SEM MODO</title>
+<title>Testes EL250 - AUTO VOLTA SERIE</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 *{font-family:Segoe UI,Tahoma,sans-serif} body{background:#f4f6f9;padding:20px}
 .header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:22px;border-radius:15px;margin-bottom:15px}
@@ -14,22 +15,24 @@
 .input-leitura{font-size:20px;padding:14px;text-align:center}
 .log-box{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:14px;border-radius:8px;max-height:300px;overflow:auto;white-space:pre-wrap}
 .config-fixed{background:#fff;border:2px solid #0d6efd;border-radius:12px}
-.serie-box{background:#212529;color:white;border-radius:12px;padding:18px}
+.serie-box{background:#212529;color:white;border-radius:12px;padding:18px;transition:.5s}
 .serie-box.piscar{animation:piscar 1s infinite}
 @keyframes piscar{0%{box-shadow:0 0 0 0 rgba(25,135,84,.7)}70%{box-shadow:0 0 0 15px rgba(25,135,84,0)}100%{box-shadow:0 0 0 0 rgba(25,135,84,0)}}
 .serie-box input{font-size:32px;font-weight:900;text-align:center;letter-spacing:2px;text-transform:uppercase}
 .rede-box{border:2px dashed #0d6efd;background:#e7f1ff;border-radius:12px}
+.contador{font-size:48px;font-weight:900;color:#198754}
 </style>
 </head>
 <body>
 <div class="container-fluid">
-<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250 - Fluxo Contínuo</h2><small>Produto/Operador/Modelo 1x • Série separado • Auto volta p/ próximo • SEM campo Modo • Log: CODIGO_MODELO</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="produtos.html" class="btn btn-info btn-sm me-2">Produtos</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
+<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250 - Fluxo Contínuo</h2><small>Produto/Operador/Modelo 1x • Série separado • Volta automático para próximo leitor • Log: CODIGO_MODELO</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="produtos.html" class="btn btn-info btn-sm me-2">Produtos</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
 
+<!-- REDE -->
 <div class="card rede-box mb-3 no-print" id="cardRede">
 <div class="card-body py-2">
 <div class="row align-items-center g-2">
 <div class="col-md-5">
-<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> PASTA REDE: \\10.50.1.143\Volume_1\log leitores</label>
+<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> PASTA: \\10.50.1.143\Volume_1\log leitores</label>
 <div class="d-flex gap-2 mt-1">
 <button class="btn btn-primary btn-sm" onclick="selecionarPastaRede()">Selecionar Pasta</button>
 <button class="btn btn-success btn-sm" onclick="forcarSalvarRede()">Salvar Agora</button>
@@ -38,7 +41,7 @@
 </div>
 <div class="col-md-4">
 <input id="caminhoRede" class="form-control form-control-sm" readonly value="\\10.50.1.143\Volume_1\log leitores">
-<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:32px;font-size:11px;">Selecione a pasta da rede</div>
+<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:32px;font-size:11px;">Selecione a pasta</div>
 </div>
 <div class="col-md-3">
 <div class="form-check"><input class="form-check-input" type="checkbox" id="chkAutoSalvar" checked><label class="form-check-label small fw-bold" for="chkAutoSalvar">Salvar auto na rede</label></div>
@@ -48,6 +51,7 @@
 </div>
 </div>
 
+<!-- CONFIG FIXA -->
 <div class="card config-fixed mb-3 no-print" id="cardConfigFixa">
 <div class="card-header bg-primary text-white d-flex justify-content-between"><b><i class="bi bi-gear"></i> CONFIGURAÇÃO FIXA (preenche 1x)</b><small id="statusConfig" class="badge bg-light text-primary">Carregando...</small></div>
 <div class="card-body"><div class="row g-2">
@@ -55,18 +59,22 @@
 <div class="col-md-4"><label class="small fw-bold">Operador *</label><select id="operadorSel" class="form-select form-select-lg"></select></div>
 <div class="col-md-4"><label class="small fw-bold">Modelo *</label><input id="modeloSel" class="form-control form-control-lg" value="46EL250USC01"></div>
 </div>
-<div class="mt-2 d-flex gap-2"><button class="btn btn-primary btn-sm" onclick="salvarConfigFixa()">Salvar Configuração</button><button class="btn btn-outline-secondary btn-sm" onclick="editarConfigFixa()">Editar</button><span class="ms-auto badge bg-success" id="contadorTotal">Total: 0</span></div>
+<div class="mt-2 d-flex gap-2"><button class="btn btn-primary btn-sm" onclick="salvarConfigFixa()">Salvar Configuração</button><button class="btn btn-outline-secondary btn-sm" onclick="editarConfigFixa()">Editar</button><span class="ms-3 small text-muted">Fica salvo, não limpa no próximo leitor</span><span class="ms-auto badge bg-success" id="contadorTotal">Total testados: 0</span></div>
 </div></div>
 
+<!-- SERIE SEPARADO - FOCO AUTOMATICO -->
 <div class="card serie-box mb-4 no-print" id="cardSerie">
 <div class="card-body">
 <div class="row align-items-end">
-<div class="col-md-8"><label class="small text-warning fw-bold"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE - BIPE AQUI *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui - foco automático" autocomplete="off"></div>
-<div class="col-md-4"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()"><i class="bi bi-play-fill"></i> INICIAR TESTE</button><small class="text-white-50 d-block text-center mt-1">Enter também inicia</small></div>
+<div class="col-md-7"><label class="small text-warning fw-bold"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE - BIPE AQUI PARA PRÓXIMO LEITOR *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui - foco automático" autocomplete="off"></div>
+<div class="col-md-2"><label class="small text-white-50">Modo</label><select id="modoLeitura" class="form-select form-select-lg"><option value="usb">USB EL250</option><option value="camera">Câmera</option></select></div>
+<div class="col-md-3"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()"><i class="bi bi-play-fill"></i> INICIAR TESTE</button><small class="text-white-50 d-block text-center mt-1">Enter também inicia</small></div>
 </div>
-<div id="msgAutoVolta" class="alert alert-success mt-3" style="display:none;"><i class="bi bi-arrow-clockwise"></i> <b>Teste finalizado!</b> Voltando para próximo em <b id="contadorRegressivo">3</b>s... <span class="float-end">Hoje: <b id="totalHoje">0</b></span></div>
+<div id="msgAutoVolta" class="alert alert-success mt-3" style="display:none;"><i class="bi bi-arrow-clockwise"></i> <b>Teste finalizado!</b> Voltando para leitura do próximo número de série em <b id="contadorRegressivo">3</b>s... <span class="float-end">Total hoje: <b id="totalHoje">0</b></span></div>
 </div>
 </div>
+
+<div id="areaScanner" class="card mb-3 no-print" style="display:none;"><div class="card-body text-center"><h6>Aponte para: <span id="codigoEsperado" class="text-primary fw-bold"></span></h6><div id="reader"></div><button class="btn btn-secondary mt-2" onclick="pararScanner()">Fechar</button></div></div>
 
 <div id="areaSequencia" class="no-print" style="display:none;">
 <div class="alert alert-info py-2 d-flex justify-content-between"><span><b id="infoResumo"></b></span><span>Início: <b id="horaInicio"></b> | <b id="totalCodigos">0</b> códigos</span></div>
@@ -80,11 +88,11 @@
 <h6 class="text-center my-3">COMPROVANTE - EVIDÊNCIA</h6>
 <table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;"><tr><td><b>Início</b></td><td id="c_inicio"></td><td><b>Fim</b></td><td id="c_fim"></td></tr><tr><td><b>Produto (Código)</b></td><td id="c_prod"></td><td><b>Modelo</b></td><td id="c_model"></td></tr><tr><td><b>Série</b></td><td id="c_serie"></td><td><b>Operador</b></td><td id="c_oper"></td></tr><tr><td><b>Duração</b></td><td id="c_dur"></td><td><b>Hash</b></td><td id="c_hash" style="font-family:monospace;font-size:9px;"></td></tr></table>
 <table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;"><thead><tr style="background:#eee;"><th># - Nome do Código</th><th>Esperado</th><th>Lido</th><th>Status</th><th>Hora</th></tr></thead><tbody id="c_leituras"></tbody></table>
-<div class="no-print mt-2 small bg-light p-2 rounded"><b>Arquivo:</b> <span id="nomeArquivoGerado" style="font-family:monospace;"></span></div>
+<div class="no-print mt-2 small bg-light p-2 rounded"><b>Arquivo gerado:</b> <span id="nomeArquivoGerado" style="font-family:monospace;"></span></div>
 <div class="no-print text-center mt-3 d-flex justify-content-center gap-2 flex-wrap">
 <button class="btn btn-dark btn-sm" onclick="window.print()">Imprimir</button>
 <button class="btn btn-primary btn-sm" onclick="forcarSalvarRede()">Salvar na Rede</button>
-<button class="btn btn-success btn-sm" onclick="voltarParaSerieManual()"><i class="bi bi-upc-scan"></i> Próximo Leitor</button>
+<button class="btn btn-success btn-sm" onclick="voltarParaSerieManual()"><i class="bi bi-upc-scan"></i> Próximo Leitor (Voltar p/ Série)</button>
 </div>
 <div id="statusSalvoRede" class="mt-2 small text-center"></div>
 </div>
@@ -93,7 +101,7 @@
 </div>
 
 <script>
-let stepAtual=0,dadosTeste={},inicioTimestamp=null,configFixa=null;
+let stepAtual=0,dadosTeste={},html5QrcodeScanner=null,inicioTimestamp=null,configFixa=null;
 let codigosEsperados={}, listaCodigosProduto=[];
 let dirHandleRede=null;
 let contadorInterval=null;
@@ -117,7 +125,8 @@ function inicializarDados(){
         {ordem:2,nome:'Código 1D - Caixa 1',valorEsperado:'2112345678917',icone:'upc'},
         {ordem:3,nome:'Código 1D - Caixa 2',valorEsperado:'6901028075763',icone:'upc-scan'},
         {ordem:4,nome:'Firmware - Versão',valorEsperado:'',icone:'cpu'}
-      ]}
+      ]},
+      {id:'2', codigo:'46EL25BC', nome:'LEITOR EL250 BALCAO', modelo:'EL350', tipo:'EL250', codigos:[]}
     ];
     localStorage.setItem('produtos',JSON.stringify(produtos));
   }
@@ -132,6 +141,7 @@ function inicializarDados(){
   if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
   if(!localStorage.getItem('logs_evidencia')) localStorage.setItem('logs_evidencia',JSON.stringify([]));
 }
+
 function carregarProdutos(){
   const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
   const sel=document.getElementById('produtoSel');
@@ -162,6 +172,9 @@ function carregarConfigFixa(){
     document.getElementById('statusConfig').className='badge bg-success';
     configFixa=cfg;
     bloquearConfig(true);
+  }else{
+    document.getElementById('statusConfig').innerText='Não configurado';
+    document.getElementById('statusConfig').className='badge bg-warning text-dark';
   }
 }
 function salvarConfigFixa(){
@@ -177,6 +190,7 @@ function salvarConfigFixa(){
 function bloquearConfig(b){document.getElementById('produtoSel').disabled=b;document.getElementById('operadorSel').disabled=b;document.getElementById('modeloSel').disabled=b;}
 function editarConfigFixa(){bloquearConfig(false);document.getElementById('statusConfig').innerText='Editando...';document.getElementById('statusConfig').className='badge bg-warning text-dark';}
 function sanitizeNome(s){return (s||'').toString().replace(/[\\\/:*?"<>|]/g,'-').replace(/\s+/g,'_').slice(0,40);}
+
 function getCodigosDoProduto(codigoProduto){
   const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
   const prod=produtos.find(p=>p.codigo===codigoProduto);
@@ -194,16 +208,17 @@ function renderStepsCodigos(codigos){
   container.innerHTML=codigos.map((c,i)=>{
     const idx=i+1;
     const esperado=c.valorEsperado?`Esperado: ${c.valorEsperado}`:'Qualquer leitura';
-    return `<div class="step-card" id="step${idx}"><div class="d-flex justify-content-between"><div><b>${idx} - ${c.nome}</b> <span class="badge bg-info ms-2">${c.icone}</span><br><small class="text-muted"><b>Nome do Código:</b> ${c.nome} | ${esperado}</small></div><small id="lido${idx}"></small></div><input id="input${idx}" class="form-control input-leitura mt-2" placeholder="${idx===1?'Bipe: '+c.nome:'Aguardando '+c.nome}" ${idx!==1?'disabled':''}></div>`;
+    return `<div class="step-card" id="step${idx}"><div class="d-flex justify-content-between"><div><b>${idx} - ${c.nome}</b> <span class="badge bg-info ms-2">${c.icone}</span><br><small class="text-muted">${esperado}</small></div><small id="lido${idx}"></small></div><input id="input${idx}" class="form-control input-leitura mt-2" placeholder="${idx===1?'Bipe: '+c.nome:'Aguardando '+c.nome}" ${idx!==1?'disabled':''}></div>`;
   }).join('');
   document.querySelectorAll('.input-leitura').forEach((inp,i)=>{
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validarLeitura(i+1,inp.value.trim());}});
   });
 }
+
 function iniciarSequencia(){
-  if(!localStorage.getItem('config_fixa_teste')){alert('Salve a configuração fixa');return;}
+  if(!localStorage.getItem('config_fixa_teste')){alert('Salve a configuração fixa primeiro');return;}
   const serie=document.getElementById('serieSel').value.trim();
-  if(!serie){alert('Digite o NÚMERO DE SÉRIE');return;}
+  if(!serie){alert('Digite o NÚMERO DE SÉRIE');document.getElementById('serieSel').focus();return;}
   const cfg=JSON.parse(localStorage.getItem('config_fixa_teste'));
   listaCodigosProduto=getCodigosDoProduto(cfg.produto);
   codigosEsperados={}; listaCodigosProduto.forEach((c,idx)=>{codigosEsperados[idx+1]=c.valorEsperado||null;});
@@ -217,6 +232,8 @@ function iniciarSequencia(){
   document.getElementById('comprovante').style.display='none';
   document.getElementById('areaLogTerminal').style.display='none';
   document.getElementById('msgAutoVolta').style.display='none';
+  // Esconde config fixa durante teste para focar na leitura
+  // document.getElementById('cardConfigFixa').style.display='none';
   document.getElementById('cardSerie').style.display='none';
   ativarStep(1);
 }
@@ -230,20 +247,31 @@ function validarLeitura(step,codigo){
   dadosTeste.leituras[step]={codigo,correto:ok,esperado:esp||'LIVRE',nome:listaCodigosProduto[step-1]?.nome||'',timestamp:new Date().toISOString(),hora:new Date().toLocaleTimeString('pt-BR')};
   if(step < listaCodigosProduto.length) setTimeout(()=>ativarStep(step+1),400); else setTimeout(()=>finalizar(),400);
 }
+
 async function finalizar(){
   let fim=new Date();let todos=Object.values(dadosTeste.leituras).every(l=>l.correto);let res=todos?'APROVADO':'REPROVADO';let dur=((fim-inicioTimestamp)/1000).toFixed(1);
   let teste={id:Date.now().toString(),data:fim.toISOString(),produtoCodigo:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,leituras:dadosTeste.leituras,duracao:dur};
   let testes=JSON.parse(localStorage.getItem('testes')||'[]');testes.unshift(teste);localStorage.setItem('testes',JSON.stringify(testes));
-  let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
+  const codigosNomesParaLog=dadosTeste.codigosNomes||listaCodigosProduto;
+  let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),inicio_iso:dadosTeste.inicio,fim_iso:fim.toISOString(),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:codigosNomesParaLog,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><small>Voltando para próximo leitor...</small></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3><i class="bi bi-${todos?'check-circle':'x-circle'}"></i> ${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | Série: ${dadosTeste.serie} | ${dur}s</p><small>Salvando log e voltando para próximo leitor...</small></div>`;
   preencher(log);
   atualizarContadorTotal();
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
-  if(document.getElementById('chkAutoVolta').checked){ iniciarContagemRegressivaParaSerie(); }
+  // AUTO VOLTA PARA SERIE
+  if(document.getElementById('chkAutoVolta').checked){
+    iniciarContagemRegressivaParaSerie();
+  }else{
+    document.getElementById('msgAutoVolta').style.display='block';
+    document.getElementById('msgAutoVolta').innerHTML='<b>Teste finalizado!</b> Clique em <b>Próximo Leitor</b> para voltar para leitura do número de série.';
+  }
 }
-function gerarNomeArquivo(log, ext){return `${log.log_id}_${sanitizeNome(log.produto)}_${sanitizeNome(log.modelo)}_${sanitizeNome(log.serie)}_${sanitizeNome(log.resultado)}.${ext}`;}
+
+function gerarNomeArquivo(log, ext){
+  return `${log.log_id}_${sanitizeNome(log.produto)}_${sanitizeNome(log.modelo)}_${sanitizeNome(log.serie)}_${sanitizeNome(log.resultado)}.${ext}`;
+}
 function preencher(log){
   document.getElementById('comprovante').style.display='block';document.getElementById('areaLogTerminal').style.display='block';
   document.getElementById('compResultado').innerText=log.resultado;document.getElementById('compID').innerText=log.log_id;
@@ -256,9 +284,24 @@ function preencher(log){
     let nome=v.nome||(log.codigosNomes||[])[parseInt(k)-1]?.nome||`Código ${k}`;
     return `<tr><td>${k} - ${nome}</td><td>${v.esperado}</td><td style="font-family:monospace;">${v.codigo}</td><td>${v.correto?'OK':'FALHA'}</td><td>${v.hora}</td></tr>`;
   }).join('');
-  const txt=`ARQUIVO: ${gerarNomeArquivo(log,'txt')}\nLOG_ID: ${log.log_id}\nCODIGO: ${log.produto}\nMODELO: ${log.modelo}\nSERIE: ${log.serie}\nOPERADOR: ${log.operador}\nRESULTADO: ${log.resultado}\n`+Object.entries(log.leituras).map(([k,v])=>` ${k}. [${v.nome}] ${v.esperado} => ${v.codigo} [${v.correto?'OK':'FALHA'}]`).join('\n');
+  const txt=`========================================
+ELGIN - LOG DE EVIDENCIA
+ARQUIVO: ${gerarNomeArquivo(log,'txt')}
+LOG_ID: ${log.log_id}
+CODIGO: ${log.produto}
+MODELO: ${log.modelo}
+SERIE: ${log.serie}
+OPERADOR: ${log.operador}
+RESULTADO: ${log.resultado}
+INICIO: ${log.inicio_br}
+FIM: ${log.fim_br}
+DURACAO: ${log.duracao_segundos}s
+HASH: ${log.hash}
+LEITURAS:
+`+Object.entries(log.leituras).map(([k,v])=>{let nome=v.nome||`Codigo ${k}`; return ` ${k}. [${nome}] Esperado=${v.esperado} => Lido=${v.codigo} [${v.correto?'OK':'FALHA'}] ${v.hora}`;}).join('\n')+`\nDestino: \\\\10.50.1.143\\Volume_1\\log leitores\n`;
   document.getElementById('logTerminal').innerText=txt;window._textoLogAtual=txt;
 }
+
 function iniciarContagemRegressivaParaSerie(){
   let segundos=3;
   document.getElementById('msgAutoVolta').style.display='block';
@@ -268,47 +311,70 @@ function iniciarContagemRegressivaParaSerie(){
   contadorInterval=setInterval(()=>{
     segundos--;
     document.getElementById('contadorRegressivo').innerText=segundos;
-    if(segundos<=0){clearInterval(contadorInterval);voltarParaSerieAutomatico();}
+    if(segundos<=0){
+      clearInterval(contadorInterval);
+      voltarParaSerieAutomatico();
+    }
   },1000);
 }
+
 function voltarParaSerieAutomatico(){
+  // Limpa e volta para leitura do próximo número de série
   document.getElementById('serieSel').value='';
   document.getElementById('areaSequencia').style.display='none';
   document.getElementById('resultadoFinal').style.display='none';
   document.getElementById('msgAutoVolta').style.display='none';
   document.getElementById('cardSerie').style.display='block';
+  // Mantém config fixa bloqueada (produto/operador/modelo uma vez só)
+  // document.getElementById('cardConfigFixa').style.display='block';
   document.getElementById('cardSerie').classList.remove('piscar');
+  // Mantém comprovante visível por 5s depois esconde ou deixa? Vamos manter visível mas scroll para topo
   document.getElementById('cardSerie').scrollIntoView({behavior:'smooth'});
-  setTimeout(()=>{document.getElementById('serieSel').focus();},300);
+  setTimeout(()=>{
+    document.getElementById('serieSel').focus();
+    document.getElementById('serieSel').select();
+  },300);
   atualizarContadorTotal();
 }
-function voltarParaSerieManual(){if(contadorInterval) clearInterval(contadorInterval);voltarParaSerieAutomatico();}
+
+function voltarParaSerieManual(){
+  if(contadorInterval) clearInterval(contadorInterval);
+  voltarParaSerieAutomatico();
+}
+
+function proximoTeste(){ voltarParaSerieAutomatico(); }
+
 function atualizarContadorTotal(){
   const testes=JSON.parse(localStorage.getItem('testes')||'[]');
   const hoje=new Date().toISOString().slice(0,10);
   const hojeQtd=testes.filter(t=>t.data && t.data.slice(0,10)===hoje).length;
-  document.getElementById('contadorTotal').innerText=`Total: ${testes.length} | Hoje: ${hojeQtd}`;
-  const el=document.getElementById('totalHoje'); if(el) el.innerText=hojeQtd;
+  document.getElementById('contadorTotal').innerText=`Total testados: ${testes.length} | Hoje: ${hojeQtd}`;
+  const totalHojeEl=document.getElementById('totalHoje');
+  if(totalHojeEl) totalHojeEl.innerText=hojeQtd;
 }
+
 function baixarLogTXT(){ if(!window._ultimoLog) return; const blob=new Blob([window._textoLogAtual],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=gerarNomeArquivo(window._ultimoLog,'txt');a.click(); }
+
+// REDE
 async function selecionarPastaRede(){
   try{
     if(!window.showDirectoryPicker){ alert('Use Chrome/Edge'); return; }
     dirHandleRede=await window.showDirectoryPicker({mode:'readwrite'});
     await dirHandleRede.requestPermission({mode:'readwrite'});
     document.getElementById('caminhoRede').value=dirHandleRede.name+' -> \\\\10.50.1.143\\Volume_1\\log leitores';
-    document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Pasta: <b>'+dirHandleRede.name+'</b></span>';
+    document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Pasta: <b>'+dirHandleRede.name+'</b> pronta</span>';
     salvarHandleIDB(dirHandleRede);
   }catch(e){ document.getElementById('statusPasta').innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
-async function forcarSalvarRede(){ if(!window._ultimoLog) return alert('Faça um teste'); await salvarLogNaRede(window._ultimoLog); }
+async function forcarSalvarRede(){ if(!window._ultimoLog) return alert('Faça um teste primeiro'); await salvarLogNaRede(window._ultimoLog); }
 async function testarPastaRede(){
   if(!dirHandleRede){ let h=await restaurarHandleIDB(); if(!h) return alert('Selecione a pasta'); }
   try{ let f=await dirHandleRede.getFileHandle('TESTE_'+Date.now()+'.txt',{create:true}); let w=await f.createWritable(); await w.write('TESTE OK '+new Date().toLocaleString('pt-BR')); await w.close(); document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Teste OK em '+dirHandleRede.name+'</span>'; }catch(e){ document.getElementById('statusPasta').innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
 async function salvarLogNaRede(log){
-  if(!dirHandleRede){ dirHandleRede=await restaurarHandleIDB(); if(!dirHandleRede){ document.getElementById('statusPasta').innerHTML='⚠️ Selecione a pasta'; return; } }
+  if(!dirHandleRede){ dirHandleRede=await restaurarHandleIDB(); if(!dirHandleRede){ document.getElementById('statusPasta').innerHTML='⚠️ Selecione a pasta da rede'; return; } }
   try{
+    if(dirHandleRede.queryPermission){ let p=await dirHandleRede.queryPermission({mode:'readwrite'}); if(p!=='granted') await dirHandleRede.requestPermission({mode:'readwrite'}); }
     let dataHoje=new Date().toISOString().slice(0,10);
     let pasta=dirHandleRede;
     try{ pasta=await dirHandleRede.getDirectoryHandle('LOGS_'+dataHoje,{create:true}); }catch{}
