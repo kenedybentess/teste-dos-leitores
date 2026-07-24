@@ -2,18 +2,18 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Testes EL250 - COM LOG REDE</title>
+<title>Testes EL250 - LOG com MODELO e CODIGO</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 *{font-family:Segoe UI,Tahoma,sans-serif} body{background:#f4f6f9;padding:20px}
-.header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:22px;border-radius:15px;margin-bottom:20px}
+.header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:22px;border-radius:15px;margin-bottom:15px}
 .step-card{border:3px solid #dee2e6;border-radius:15px;padding:18px;margin-bottom:12px;background:white}
 .step-card.ativo{border-color:#ffc107;background:#fff3cd} .step-card.concluido{border-color:#198754;background:#d1e7dd} .step-card.erro{border-color:#dc3545;background:#f8d7da}
 .scan-ativo{border:3px solid #ffc107!important;background:#fff3cd!important;font-size:22px!important}
 .input-leitura{font-size:20px;padding:14px;text-align:center}
-.log-box{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:14px;border-radius:8px;max-height:350px;overflow:auto;white-space:pre-wrap}
+.log-box{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:14px;border-radius:8px;max-height:380px;overflow:auto;white-space:pre-wrap}
 .serie-box{background:#212529;color:white;border-radius:12px;padding:18px}
 .serie-box input{font-size:28px;font-weight:900;text-align:center;letter-spacing:1.5px}
 .rede-box{border:3px dashed #0d6efd;background:#e7f1ff;border-radius:12px}
@@ -21,29 +21,27 @@
 </head>
 <body>
 <div class="container-fluid">
-<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250 - Fluxo Rápido</h2><small>Produto/Operador/Modelo uma vez só • Série separado • Log em rede</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
+<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250</h2><small>Produto/Operador/Modelo 1x • Série separado • Log com Modelo e Código no nome do arquivo</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
 
-<!-- PASTA DE REDE - CORRIGIDO -->
-<div class="card rede-box mb-3 no-print" id="cardRede">
-<div class="card-body">
+<!-- PASTA REDE -->
+<div class="card rede-box mb-3 no-print">
+<div class="card-body py-2">
 <div class="row align-items-center g-2">
 <div class="col-md-5">
-<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> PASTA DA REDE PARA LOGS</label>
+<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> PASTA REDE: \\10.50.1.143\Volume_1\log leitores</label>
 <div class="d-flex gap-2 mt-1">
-<button class="btn btn-primary" onclick="selecionarPastaRede()"><i class="bi bi-folder2-open"></i> 1. Selecionar Pasta</button>
-<button class="btn btn-success" onclick="forcarSalvarRede()"><i class="bi bi-cloud-upload"></i> 2. Salvar Log Agora</button>
+<button class="btn btn-primary btn-sm" onclick="selecionarPastaRede()"><i class="bi bi-folder2-open"></i> Selecionar Pasta</button>
+<button class="btn btn-success btn-sm" onclick="forcarSalvarRede()"><i class="bi bi-cloud-upload"></i> Salvar Agora</button>
+<button class="btn btn-outline-dark btn-sm" onclick="testarPastaRede()">Testar</button>
 </div>
-<small class="text-muted d-block mt-1">DESTINO: \\10.50.1.143\Volume_1\log leitores - Clique em Selecionar e navegue até ele</small>
 </div>
 <div class="col-md-4">
-<label class="small fw-bold">Status da Pasta</label>
-<input id="caminhoRede" class="form-control form-control-sm" readonly value="\\\\10.50.1.143\\Volume_1\\log leitores" placeholder="\\\\10.50.1.143\\Volume_1\\log leitores">
-<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:35px;font-size:11px;">Aguardando seleção...</div>
+<input id="caminhoRede" class="form-control form-control-sm" readonly value="\\10.50.1.143\Volume_1\log leitores">
+<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:35px;font-size:11px;">Clique em Selecionar Pasta e navegue até \\10.50.1.143\Volume_1\log leitores</div>
 </div>
 <div class="col-md-3">
-<div class="form-check"><input class="form-check-input" type="checkbox" id="chkAutoSalvar" checked><label class="form-check-label small fw-bold" for="chkAutoSalvar">Salvar automático ao finalizar</label></div>
-<div class="form-check"><input class="form-check-input" type="checkbox" id="chkSalvarLocal" checked><label class="form-check-label small" for="chkSalvarLocal">Também baixar local</label></div>
-<button class="btn btn-sm btn-outline-dark w-100 mt-2" onclick="testarPastaRede()"><i class="bi bi-bug"></i> Testar Gravação</button>
+<div class="form-check"><input class="form-check-input" type="checkbox" id="chkAutoSalvar" checked><label class="form-check-label small fw-bold" for="chkAutoSalvar">Salvar automático na rede</label></div>
+<div class="small text-muted mt-1" style="font-size:10px;">Nome do arquivo agora: LOGID_CODIGO_MODELO_SERIE_RESULTADO.txt</div>
 </div>
 </div>
 </div>
@@ -51,49 +49,49 @@
 
 <!-- CONFIG FIXA -->
 <div class="card mb-3 no-print" id="cardConfigFixa" style="border:2px solid #0d6efd;border-radius:12px;">
-<div class="card-header bg-primary text-white d-flex justify-content-between"><b><i class="bi bi-gear"></i> CONFIG FIXA (1x por turno)</b><small id="statusConfig" class="badge bg-light text-primary">Não configurado</small></div>
+<div class="card-header bg-primary text-white d-flex justify-content-between"><b>CONFIG FIXA (1x por turno)</b><small id="statusConfig" class="badge bg-light text-primary">Não configurado</small></div>
 <div class="card-body"><div class="row g-2">
-<div class="col-md-4"><label class="small fw-bold">Produto *</label><select id="produtoSel" class="form-select form-select-lg"></select></div>
+<div class="col-md-4"><label class="small fw-bold">Produto (Código) *</label><select id="produtoSel" class="form-select form-select-lg"></select></div>
 <div class="col-md-4"><label class="small fw-bold">Operador *</label><select id="operadorSel" class="form-select form-select-lg"></select></div>
-<div class="col-md-4"><label class="small fw-bold">Modelo *</label><input id="modeloSel" class="form-control form-control-lg" value="46EL250USC01"></div>
+<div class="col-md-4"><label class="small fw-bold">Modelo *</label><input id="modeloSel" class="form-control form-control-lg" placeholder="Ex: EL350 / 46EL250USC01" value="46EL250USC01"></div>
 </div>
-<div class="mt-2"><button class="btn btn-primary btn-sm" onclick="salvarConfigFixa()">Salvar Config</button><button class="btn btn-outline-secondary btn-sm ms-2" onclick="editarConfigFixa()">Editar</button></div>
+<div class="mt-2"><button class="btn btn-primary btn-sm" onclick="salvarConfigFixa()">Salvar</button><button class="btn btn-outline-secondary btn-sm ms-2" onclick="editarConfigFixa()">Editar</button></div>
 </div></div>
 
 <div class="card mb-4 no-print serie-box" id="cardSerie">
 <div class="card-body"><div class="row align-items-end">
-<div class="col-md-8"><label class="small text-warning fw-bold"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui" autocomplete="off"></div>
-<div class="col-md-2"><label class="small text-white-50">Modo</label><select id="modoLeitura" class="form-select form-select-lg"><option value="usb">USB EL250</option><option value="camera">Câmera</option></select></div>
-<div class="col-md-2"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()"><i class="bi bi-play-fill"></i> INICIAR</button></div>
+<div class="col-md-8"><label class="small text-warning fw-bold">NÚMERO DE SÉRIE *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui" autocomplete="off"></div>
+<div class="col-md-4"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()">INICIAR TESTE</button></div>
 </div></div></div>
 
-<div id="areaScanner" class="card mb-3 no-print" style="display:none;"><div class="card-body text-center"><h6>Aponte: <span id="codigoEsperado" class="text-primary fw-bold"></span></h6><div id="reader"></div><button class="btn btn-secondary mt-2" onclick="pararScanner()">Fechar</button></div></div>
+<div id="areaScanner" class="card mb-3 no-print" style="display:none;"><div class="card-body text-center"><div id="reader"></div><button class="btn btn-secondary mt-2" onclick="pararScanner()">Fechar</button></div></div>
 
 <div id="areaSequencia" class="no-print" style="display:none;">
-<div class="alert alert-info py-2 d-flex justify-content-between"><span><b id="infoResumo"></b></span><span>Início: <b id="horaInicio"></b></span></div>
+<div class="alert alert-info py-2"><b id="infoResumo"></b> | Início: <b id="horaInicio"></b></div>
 <div class="step-card" id="step1"><div class="d-flex justify-content-between"><b>1 - QR 6922711051772</b><small id="lido1"></small></div><input id="input1" class="form-control input-leitura mt-2" placeholder="Bipe QR"></div>
-<div class="step-card" id="step2"><div class="d-flex justify-content-between"><b>2 - 1D 2112345678917</b><small id="lido2"></small></div><input id="input2" class="form-control input-leitura mt-2" placeholder="Aguardando..." disabled></div>
-<div class="step-card" id="step3"><div class="d-flex justify-content-between"><b>3 - 1D 6901028075763</b><small id="lido3"></small></div><input id="input3" class="form-control input-leitura mt-2" placeholder="Aguardando..." disabled></div>
-<div class="step-card" id="step4"><div class="d-flex justify-content-between"><b>4 - Firmware livre</b><small id="lido4"></small></div><input id="input4" class="form-control input-leitura mt-2" placeholder="Aguardando..." disabled></div>
+<div class="step-card" id="step2"><div class="d-flex justify-content-between"><b>2 - 1D 2112345678917</b><small id="lido2"></small></div><input id="input2" class="form-control input-leitura mt-2" disabled></div>
+<div class="step-card" id="step3"><div class="d-flex justify-content-between"><b>3 - 1D 6901028075763</b><small id="lido3"></small></div><input id="input3" class="form-control input-leitura mt-2" disabled></div>
+<div class="step-card" id="step4"><div class="d-flex justify-content-between"><b>4 - Firmware livre</b><small id="lido4"></small></div><input id="input4" class="form-control input-leitura mt-2" disabled></div>
 </div>
 
 <div id="resultadoFinal" class="card mt-3 no-print" style="display:none;"></div>
 
 <div id="comprovante" style="display:none;background:white;border:2px solid #000;padding:18px;margin-top:18px;">
-<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><h3 style="font-weight:900;margin:0;">'elgin</h3><small>CNPJ 14.200.166/0005-90</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
-<h6 class="text-center my-3">COMPROVANTE - EVIDÊNCIA</h6>
-<table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;"><tr><td><b>Início</b></td><td id="c_inicio"></td><td><b>Fim</b></td><td id="c_fim"></td></tr><tr><td><b>Produto/Modelo</b></td><td id="c_prod"></td><td><b>Série</b></td><td id="c_serie"></td></tr><tr><td><b>Operador</b></td><td id="c_oper"></td><td><b>Duração</b></td><td id="c_dur"></td></tr><tr><td><b>Hash</b></td><td colspan="3" id="c_hash" style="font-family:monospace;"></td></tr></table>
+<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><h3 style="font-weight:900;margin:0;">'elgin</h3><small>CNPJ 14.200.166/0005-90 - POLO INDUSTRIAL DE MANAUS</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
+<h6 class="text-center my-3">COMPROVANTE DE TESTE - EVIDÊNCIA</h6>
+<table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;"><tr><td><b>Início</b></td><td id="c_inicio"></td><td><b>Fim</b></td><td id="c_fim"></td></tr><tr><td><b>Produto (Código)</b></td><td id="c_prod"></td><td><b>Modelo</b></td><td id="c_model"></td></tr><tr><td><b>Série</b></td><td id="c_serie"></td><td><b>Operador</b></td><td id="c_oper"></td></tr><tr><td><b>Duração</b></td><td id="c_dur"></td><td><b>Hash</b></td><td id="c_hash" style="font-family:monospace;font-size:9px;"></td></tr></table>
 <table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;"><thead><tr style="background:#eee;"><th>#</th><th>Esperado</th><th>Lido</th><th>Status</th><th>Hora</th></tr></thead><tbody id="c_leituras"></tbody></table>
+<div class="no-print mt-2 small bg-light p-2 rounded"><b>Nome do arquivo gerado:</b> <span id="nomeArquivoGerado" style="font-family:monospace;"></span></div>
 <div class="no-print text-center mt-3 d-flex justify-content-center gap-2 flex-wrap">
-<button class="btn btn-dark btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
-<button class="btn btn-primary btn-sm" onclick="forcarSalvarRede()"><i class="bi bi-hdd-network"></i> Salvar na Rede Agora</button>
+<button class="btn btn-dark btn-sm" onclick="window.print()">Imprimir</button>
+<button class="btn btn-primary btn-sm" onclick="forcarSalvarRede()">Salvar na Rede (\\10.50.1.143)</button>
 <button class="btn btn-outline-dark btn-sm" onclick="baixarLogTXT()">Baixar TXT Local</button>
 <button class="btn btn-success btn-sm" onclick="proximoTeste()">Próxima Série</button>
 </div>
 <div id="statusSalvoRede" class="mt-2 small text-center"></div>
 </div>
 
-<div id="areaLogTerminal" class="card mt-3 no-print" style="display:none;"><div class="card-header bg-dark text-white py-2 d-flex justify-content-between"><span>LOG BRUTO</span><span id="statusPasta2" class="small"></span></div><div class="card-body p-0"><div class="log-box" id="logTerminal"></div></div></div>
+<div id="areaLogTerminal" class="card mt-3 no-print" style="display:none;"><div class="card-header bg-dark text-white py-2">LOG BRUTO - COM MODELO E CODIGO</div><div class="card-body p-0"><div class="log-box" id="logTerminal"></div></div></div>
 </div>
 
 <script>
@@ -101,7 +99,6 @@ let stepAtual=0,dadosTeste={},html5QrcodeScanner=null,inicioTimestamp=null,confi
 const codigosEsperados={1:"6922711051772",2:"2112345678917",3:"6901028075763",4:null};
 let dirHandleRede=null;
 
-// INIT
 document.addEventListener('DOMContentLoaded',()=>{
   if(!localStorage.getItem('produtos')) localStorage.setItem('produtos',JSON.stringify([]));
   if(!localStorage.getItem('operadores')) localStorage.setItem('operadores',JSON.stringify([{id:'1',matricula:'ADMIN',nome:'Administrador',status:'Ativo'}]));
@@ -114,20 +111,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   operadorSel.addEventListener('change',salvarConfigFixa); modeloSel.addEventListener('input',salvarConfigFixa);
 });
 
-
-// Mostra caminho alvo
-document.addEventListener('DOMContentLoaded', ()=>{
-  const alvo = '\\\\10.50.1.143\\Volume_1\\log leitores';
-  document.getElementById('caminhoRede').value = alvo + ' (alvo - selecione via botão)';
-  document.getElementById('statusPasta').innerHTML = '<span class="text-primary">📁 Destino configurado: <b>'+alvo+'</b><br>1. Clique em <b>Selecionar Pasta</b><br>2. Na janela, cole na barra de endereço: <b>'+alvo+'</b> e Enter<br>3. Clique em Selecionar pasta<br>Se não aparecer, mapeie como unidade Z: primeiro.</span>';
-  localStorage.setItem('pasta_rede_alvo', alvo);
-});
-
 function carregarProdutos(){const p=JSON.parse(localStorage.getItem('produtos'))||[];document.getElementById('produtoSel').innerHTML='<option value="">Selecione</option>'+p.map(x=>`<option value="${x.codigo}" data-modelo="${x.modelo||''}">${x.codigo} - ${x.nome}</option>`).join('');}
 function carregarOperadores(){const o=JSON.parse(localStorage.getItem('operadores'))||[];document.getElementById('operadorSel').innerHTML='<option value="">Selecione</option>'+o.filter(x=>x.status==='Ativo').map(x=>`<option value="${x.nome}">${x.nome}</option>`).join('');}
-function carregarConfigFixa(){const cfg=JSON.parse(localStorage.getItem('config_fixa_teste')||'null'); if(cfg){if(cfg.produto) produtoSel.value=cfg.produto; if(cfg.operador) operadorSel.value=cfg.operador; if(cfg.modelo) modeloSel.value=cfg.modelo; statusConfig.innerText='Salvo: '+cfg.produto; statusConfig.className='badge bg-success'; configFixa=cfg;}}
-function salvarConfigFixa(){if(!produtoSel.value && !operadorSel.value && !modeloSel.value) return; const cfg={produto:produtoSel.value,operador:operadorSel.value,modelo:modeloSel.value}; localStorage.setItem('config_fixa_teste',JSON.stringify(cfg)); configFixa=cfg; statusConfig.innerText='Salvo: '+cfg.produto; statusConfig.className='badge bg-success'; statusConfig.style.display='inline-block';}
+function carregarConfigFixa(){const cfg=JSON.parse(localStorage.getItem('config_fixa_teste')||'null'); if(cfg){if(cfg.produto) produtoSel.value=cfg.produto; if(cfg.operador) operadorSel.value=cfg.operador; if(cfg.modelo) modeloSel.value=cfg.modelo; statusConfig.innerText='Salvo: '+cfg.produto+' / '+cfg.modelo; statusConfig.className='badge bg-success'; configFixa=cfg;}}
+function salvarConfigFixa(){if(!produtoSel.value && !operadorSel.value && !modeloSel.value) return; const cfg={produto:produtoSel.value,operador:operadorSel.value,modelo:modeloSel.value}; localStorage.setItem('config_fixa_teste',JSON.stringify(cfg)); configFixa=cfg; statusConfig.innerText='Salvo: '+cfg.produto+' / '+cfg.modelo; statusConfig.className='badge bg-success'; statusConfig.style.display='inline-block';}
 function editarConfigFixa(){statusConfig.innerText='Editando...'; statusConfig.className='badge bg-warning text-dark';}
+function sanitizeNome(str){return (str||'').toString().replace(/[\\\/:*?"<>|]/g,'-').replace(/\s+/g,'_').slice(0,50);}
 
 function iniciarSequencia(){
   if(!produtoSel.value||!operadorSel.value||!modeloSel.value) return alert('Preencha Produto, Operador e Modelo');
@@ -135,14 +124,13 @@ function iniciarSequencia(){
   salvarConfigFixa();
   inicioTimestamp=new Date();
   horaInicio.innerText=inicioTimestamp.toLocaleTimeString('pt-BR');
-  infoResumo.innerText=`${produtoSel.value} | ${operadorSel.value} | ${modeloSel.value} | SN: ${serieSel.value.trim()}`;
+  infoResumo.innerText=`${produtoSel.value} | ${modeloSel.value} | SN: ${serieSel.value.trim()} | Op: ${operadorSel.value}`;
   dadosTeste={produto:produtoSel.value,operador:operadorSel.value,modelo:modeloSel.value,serie:serieSel.value.trim(),leituras:{},inicio:inicioTimestamp.toISOString()};
   areaSequencia.style.display='block'; resultadoFinal.style.display='none'; comprovante.style.display='none'; areaLogTerminal.style.display='none';
   ativarStep(1);
-  if(modoLeitura.value==='camera') ativarCamera();
 }
-function ativarStep(n){stepAtual=n;document.querySelectorAll('.step-card').forEach((c,i)=>{c.classList.remove('ativo');if(i+1===n) c.classList.add('ativo');});let inp=document.getElementById('input'+n);inp.disabled=false;inp.classList.add('scan-ativo');inp.focus(); if(modoLeitura.value==='camera') codigoEsperado.innerText=codigosEsperados[n]||'LIVRE';}
-function validarLeitura(step,codigo){if(!codigo) return;let esp=codigosEsperados[step];let ok=!esp||codigo.replace(/\s/g,'')===esp.replace(/\s/g,'');let inp=document.getElementById('input'+step);inp.value=codigo;inp.classList.remove('scan-ativo');document.getElementById('lido'+step).innerHTML=(ok?'✅ '+codigo:'❌ '+codigo);document.getElementById('step'+step).classList.add(ok?'concluido':'erro');inp.disabled=true;dadosTeste.leituras[step]={codigo,correto:ok,esperado:esp||'LIVRE',timestamp:new Date().toISOString(),hora:new Date().toLocaleTimeString('pt-BR')};if(step<4) setTimeout(()=>ativarStep(step+1),500); else setTimeout(()=>finalizar(),500);}
+function ativarStep(n){stepAtual=n;document.querySelectorAll('.step-card').forEach((c,i)=>{c.classList.remove('ativo');if(i+1===n) c.classList.add('ativo');});let inp=document.getElementById('input'+n);inp.disabled=false;inp.classList.add('scan-ativo');inp.focus();}
+function validarLeitura(step,codigo){if(!codigo) return;let esp=codigosEsperados[step];let ok=!esp||codigo.replace(/\s/g,'')===esp.replace(/\s/g,'');let inp=document.getElementById('input'+step);inp.value=codigo;inp.classList.remove('scan-ativo');document.getElementById('lido'+step).innerHTML=(ok?'✅ '+codigo:'❌ '+codigo);document.getElementById('step'+step).classList.add(ok?'concluido':'erro');inp.disabled=true;dadosTeste.leituras[step]={codigo,correto:ok,esperado:esp||'LIVRE',timestamp:new Date().toISOString(),hora:new Date().toLocaleTimeString('pt-BR')};if(step<4) setTimeout(()=>ativarStep(step+1),400); else setTimeout(()=>finalizar(),400);}
 
 async function finalizar(){
   let fim=new Date();let todos=Object.values(dadosTeste.leituras).every(l=>l.correto);let res=todos?'APROVADO':'REPROVADO';let dur=((fim-inicioTimestamp)/1000).toFixed(1);
@@ -151,168 +139,91 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),inicio_iso:dadosTeste.inicio,fim_iso:fim.toISOString(),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,user_agent:navigator.userAgent,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia'));logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   resultadoFinal.style.display='block';
-  resultadoFinal.innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.serie} | ${dadosTeste.modelo} | ${dur}s</p><button class="btn btn-light btn-sm" onclick="comprovante.scrollIntoView({behavior:'smooth'})">Ver Comprovante</button> <button class="btn btn-outline-light btn-sm ms-2" onclick="proximoTeste()">Próxima Série</button></div>`;
+  resultadoFinal.innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie} | ${dur}s</p><button class="btn btn-light btn-sm" onclick="comprovante.scrollIntoView({behavior:'smooth'})">Ver Comprovante</button> <button class="btn btn-outline-light btn-sm ms-2" onclick="proximoTeste()">Próxima</button></div>`;
   preencher(log);
-  pararScanner();
-  // TENTA SALVAR NA REDE AUTOMATICAMENTE
-  if(document.getElementById('chkAutoSalvar').checked){
-    document.getElementById('statusPasta').innerHTML = '⏳ Tentando salvar na rede...';
-    await salvarLogNaRede(log);
-  }
+  if(chkAutoSalvar.checked){ statusPasta.innerHTML='⏳ Salvando na rede \\\\10.50.1.143...'; await salvarLogNaRede(log); }
+}
+
+function gerarNomeArquivo(log, ext){
+  // NOVO PADRÃO: LOGID_CODIGO_MODELO_SERIE_RESULTADO.ext
+  // Ex: LOG-20260724-123456_46EL250USC01_EL350_26000001_APROVADO.txt
+  let codigo = sanitizeNome(log.produto);
+  let modelo = sanitizeNome(log.modelo);
+  let serie = sanitizeNome(log.serie);
+  let resultado = sanitizeNome(log.resultado);
+  return `${log.log_id}_${codigo}_${modelo}_${serie}_${resultado}.${ext}`;
 }
 
 function preencher(log){
   comprovante.style.display='block';areaLogTerminal.style.display='block';
-  compResultado.innerText=log.resultado;compID.innerText=log.log_id;c_inicio.innerText=log.inicio_br;c_fim.innerText=log.fim_br;c_prod.innerText=log.produto+' / '+log.modelo;c_serie.innerText=log.serie;c_oper.innerText=log.operador;c_dur.innerText=log.duracao_segundos+'s';c_hash.innerText=log.hash;
+  compResultado.innerText=log.resultado;compID.innerText=log.log_id;c_inicio.innerText=log.inicio_br;c_fim.innerText=log.fim_br;c_prod.innerText=log.produto;c_model.innerText=log.modelo;c_serie.innerText=log.serie;c_oper.innerText=log.operador;c_dur.innerText=log.duracao_segundos+'s';c_hash.innerText=log.hash;
   c_leituras.innerHTML=Object.entries(log.leituras).map(([k,v])=>`<tr><td>${k}</td><td>${v.esperado}</td><td style="font-family:monospace;">${v.codigo}</td><td>${v.correto?'OK':'FALHA'}</td><td>${v.hora}</td></tr>`).join('');
-  let txt=`[ELGIN EVIDENCIA]\nLOG_ID: ${log.log_id}\nDATA: ${log.fim_br}\nPRODUTO: ${log.produto} MODELO: ${log.modelo}\nSERIE: ${log.serie}\nOPERADOR: ${log.operador}\nRESULTADO: ${log.resultado}\nDURACAO: ${log.duracao_segundos}s\nHASH: ${log.hash}\nLEITURAS:\n`+Object.entries(log.leituras).map(([k,v])=>` ${k}. ${v.esperado} => ${v.codigo} [${v.correto?'OK':'FALHA'}] ${v.hora}`).join('\n');
+  let nomeExemplo = gerarNomeArquivo(log,'txt');
+  nomeArquivoGerado.innerText = nomeExemplo;
+  let txt=`========================================
+ELGIN - LOG DE EVIDENCIA DE TESTE
+========================================
+LOG_ID: ${log.log_id}
+ARQUIVO: ${nomeExemplo}
+----------------------------------------
+CODIGO (Produto): ${log.produto}
+MODELO: ${log.modelo}
+NUMERO DE SERIE: ${log.serie}
+OPERADOR: ${log.operador}
+RESULTADO: ${log.resultado}
+----------------------------------------
+INICIO: ${log.inicio_br}
+FIM: ${log.fim_br}
+DURACAO: ${log.duracao_segundos}s
+HASH: ${log.hash}
+----------------------------------------
+LEITURAS:
+`+Object.entries(log.leituras).map(([k,v])=>` ${k}. Esperado=${v.esperado} | Lido=${v.codigo} | ${v.correto?'OK':'FALHA'} | ${v.hora}`).join('\n')+`
+========================================
+Destino: \\\\10.50.1.143\\Volume_1\\log leitores
+`;
   logTerminal.innerText=txt;
-  window._textoLogAtual = txt;
-  comprovante.scrollIntoView({behavior:'smooth'});
+  window._textoLogAtual=txt;
 }
+
 function proximoTeste(){serieSel.value='';document.querySelectorAll('.input-leitura').forEach(i=>{i.value='';i.disabled=true;i.classList.remove('scan-ativo');});document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('ativo','concluido','erro'));document.querySelectorAll('[id^=lido]').forEach(d=>d.innerHTML='');areaSequencia.style.display='none';resultadoFinal.style.display='none';comprovante.style.display='none';areaLogTerminal.style.display='none';serieSel.focus();}
 
-// ====== PASTA REDE - CORRIGIDO ======
+// REDE
+let dirHandleRede=null;
 async function selecionarPastaRede(){
   try{
-    if(!window.showDirectoryPicker){
-      alert('Navegador não suporta. Use Chrome ou Edge.\\n\\nSolução rápida: vá em Chrome > Configurações > Downloads > altere a pasta para Z:\\\\Logs_EL250. Assim todo TXT vai pra rede.');
-      document.getElementById('statusPasta').innerHTML = '<span class="text-danger">Navegador não suporta. Use Chrome/Edge.</span>';
-      return;
-    }
+    if(!window.showDirectoryPicker){ alert('Use Chrome/Edge.\\nDepois vá em Configurações > Downloads e mude para \\\\10.50.1.143\\Volume_1\\log leitores'); return; }
     dirHandleRede = await window.showDirectoryPicker({mode:'readwrite'});
-    const perm = await dirHandleRede.requestPermission({mode:'readwrite'});
-    if(perm !== 'granted') throw new Error('Permissão negada pelo usuário');
-    document.getElementById('caminhoRede').value = dirHandleRede.name;
-    document.getElementById('statusPasta').innerHTML = '<span class="text-success">✅ Pasta selecionada: <b>'+dirHandleRede.name+'</b><br>Pode testar agora.</span>';
-    localStorage.setItem('pasta_rede_nome', dirHandleRede.name);
+    await dirHandleRede.requestPermission({mode:'readwrite'});
+    caminhoRede.value = dirHandleRede.name + ' -> \\\\10.50.1.143\\Volume_1\\log leitores';
+    statusPasta.innerHTML = '<span class="text-success">✅ Pasta: <b>'+dirHandleRede.name+'</b> pronta</span>';
     salvarHandleIDB(dirHandleRede);
-  }catch(e){
-    console.error(e);
-    document.getElementById('statusPasta').innerHTML = '<span class="text-danger">❌ Erro: '+e.message+'</span>';
-  }
+  }catch(e){ statusPasta.innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
-
-async function forcarSalvarRede(){
-  if(!window._ultimoLog){ alert('Faça um teste primeiro'); return; }
-  if(!dirHandleRede){ 
-    let h = await restaurarHandleIDB();
-    if(!h){ alert('Selecione a pasta da rede primeiro (botão 1)'); return; }
-  }
-  document.getElementById('statusPasta').innerHTML = '⏳ Salvando...';
-  await salvarLogNaRede(window._ultimoLog);
-}
-
+async function forcarSalvarRede(){ if(!_ultimoLog) return alert('Faça um teste primeiro'); await salvarLogNaRede(_ultimoLog); }
 async function testarPastaRede(){
-  if(!dirHandleRede){ let h=await restaurarHandleIDB(); if(!h) return alert('Selecione a pasta primeiro'); }
-  try{
-    let f = await dirHandleRede.getFileHandle('TESTE_CONEXAO_'+Date.now()+'.txt', {create:true});
-    let w = await f.createWritable();
-    await w.write('TESTE OK - '+new Date().toLocaleString('pt-BR')+'\nPasta: '+dirHandleRede.name+'\nSe este arquivo apareceu na pasta da rede, está funcionando!');
-    await w.close();
-    document.getElementById('statusPasta').innerHTML = '<span class="text-success">✅ TESTE OK! Arquivo criado em <b>'+dirHandleRede.name+'</b>. Verifique na pasta da rede.</span>';
-    document.getElementById('statusSalvoRede').innerHTML = '<span class="text-success">✅ Arquivo de teste criado com sucesso!</span>';
-  }catch(e){
-    document.getElementById('statusPasta').innerHTML = '<span class="text-danger">❌ Falha no teste: '+e.message+'<br>Verifique se tem permissão de escrita na pasta.</span>';
-    alert('Falha: '+e.message+'\n\nCausa comum: pasta da rede sem permissão de escrita ou antivírus bloqueando.');
-  }
+  if(!dirHandleRede){ let h=await restaurarHandleIDB(); if(!h) return alert('Selecione a pasta'); }
+  try{ let f=await dirHandleRede.getFileHandle('TESTE_'+Date.now()+'.txt',{create:true}); let w=await f.createWritable(); await w.write('TESTE OK '+new Date().toLocaleString('pt-BR')); await w.close(); statusPasta.innerHTML='<span class="text-success">✅ Teste OK em '+dirHandleRede.name+'</span>'; }catch(e){ statusPasta.innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
-
 async function salvarLogNaRede(log){
-  if(!dirHandleRede){
-    dirHandleRede = await restaurarHandleIDB();
-    if(!dirHandleRede){
-      document.getElementById('statusPasta').innerHTML = '<span class="text-warning">⚠️ Pasta da rede não configurada. Clique em Selecionar Pasta.<br>Log salvo apenas local por enquanto.</span>';
-      return;
-    }
-  }
+  if(!dirHandleRede){ dirHandleRede=await restaurarHandleIDB(); if(!dirHandleRede){ statusPasta.innerHTML='⚠️ Selecione a pasta da rede primeiro'; return; } }
   try{
-    // Verifica permissão
-    if(dirHandleRede.queryPermission){
-      let qp = await dirHandleRede.queryPermission({mode:'readwrite'});
-      if(qp !== 'granted'){
-        let rp = await dirHandleRede.requestPermission({mode:'readwrite'});
-        if(rp !== 'granted') throw new Error('Permissão negada - clique novamente em Selecionar Pasta');
-      }
-    }
-
-    let texto = window._textoLogAtual || JSON.stringify(log,null,2);
-    let dataHoje = new Date().toISOString().slice(0,10);
-
-    // Tenta criar subpasta do dia
-    let pastaDestino = dirHandleRede;
-    try{
-      pastaDestino = await dirHandleRede.getDirectoryHandle('LOGS_'+dataHoje, {create:true});
-    }catch(e){ console.log('Subpasta falhou, usando raiz', e); }
-
-    // TXT
-    let nomeTXT = `${log.log_id}_${log.serie}_${log.resultado}.txt`;
-    let fh1 = await pastaDestino.getFileHandle(nomeTXT, {create:true});
-    let w1 = await fh1.createWritable();
-    await w1.write(texto);
-    await w1.close();
-
-    // JSON
-    let nomeJSON = `${log.log_id}_${log.serie}.json`;
-    let fh2 = await pastaDestino.getFileHandle(nomeJSON, {create:true});
-    let w2 = await fh2.createWritable();
-    await w2.write(JSON.stringify(log,null,2));
-    await w2.close();
-
-    document.getElementById('statusPasta').innerHTML = '<span class="text-success">✅ Salvo na rede!<br><b>'+pastaDestino.name+'/'+nomeTXT+'</b></span>';
-    document.getElementById('statusSalvoRede').innerHTML = '<span class="text-success">✅ Log salvo na pasta da rede: '+nomeTXT+'<br>Em: '+pastaDestino.name+'</span>';
-    document.getElementById('statusPasta2').innerText = '✅ Salvo na rede';
-
-    // Baixa local também se marcado
-    if(document.getElementById('chkSalvarLocal').checked){
-      // já tem download separado, não duplica
-    }
-
-  }catch(e){
-    console.error('Erro salvar rede', e);
-    document.getElementById('statusPasta').innerHTML = '<span class="text-danger">❌ Erro ao salvar na rede: '+e.message+'<br><small>Causa: sem permissão, pasta desconectada ou navegador bloqueou. Tente clicar em "Salvar na Rede Agora" (precisa de gesto do usuário).</small></span>';
-    document.getElementById('statusSalvoRede').innerHTML = '<span class="text-danger">❌ Falha ao salvar na rede: '+e.message+'</span>';
-  }
+    if(dirHandleRede.queryPermission){ let p=await dirHandleRede.queryPermission({mode:'readwrite'}); if(p!=='granted') await dirHandleRede.requestPermission({mode:'readwrite'}); }
+    let dataHoje=new Date().toISOString().slice(0,10);
+    let pasta=dirHandleRede;
+    try{ pasta=await dirHandleRede.getDirectoryHandle('LOGS_'+dataHoje,{create:true}); }catch{}
+    let nomeTXT=gerarNomeArquivo(log,'txt');
+    let nomeJSON=gerarNomeArquivo(log,'json');
+    let f1=await pasta.getFileHandle(nomeTXT,{create:true}); let w1=await f1.createWritable(); await w1.write(window._textoLogAtual); await w1.close();
+    let f2=await pasta.getFileHandle(nomeJSON,{create:true}); let w2=await f2.createWritable(); await w2.write(JSON.stringify(log,null,2)); await w2.close();
+    statusPasta.innerHTML='<span class="text-success">✅ Salvo: '+nomeTXT+'</span>';
+    statusSalvoRede.innerHTML='<span class="text-success">✅ Salvo na rede: '+pasta.name+'/'+nomeTXT+'</span>';
+  }catch(e){ statusPasta.innerHTML='<span class="text-danger">❌ Erro: '+e.message+'</span>'; statusSalvoRede.innerHTML='<span class="text-danger">❌ Falha: '+e.message+'</span>'; }
 }
-
-function salvarHandleIDB(handle){
-  try{
-    let req = indexedDB.open('elgin_logs_db',1);
-    req.onupgradeneeded = (e)=>{ try{e.target.result.createObjectStore('handles');}catch{} };
-    req.onsuccess = ()=>{ let db=req.result; try{ let tx=db.transaction('handles','readwrite'); tx.objectStore('handles').put(handle,'pastaRede'); }catch(e){console.warn(e);} };
-  }catch(e){console.warn(e);}
-}
-function restaurarHandleIDB(){
-  return new Promise((resolve)=>{
-    try{
-      let req = indexedDB.open('elgin_logs_db',1);
-      req.onupgradeneeded = (e)=>{ try{e.target.result.createObjectStore('handles');}catch{} };
-      req.onsuccess = ()=>{
-        try{
-          let db=req.result;
-          if(!db.objectStoreNames.contains('handles')){ resolve(null); return; }
-          let tx=db.transaction('handles','readonly');
-          let getReq=tx.objectStore('handles').get('pastaRede');
-          getReq.onsuccess=()=>{
-            let handle=getReq.result;
-            if(handle){
-              dirHandleRede=handle;
-              document.getElementById('caminhoRede').value = handle.name + ' (restaurada)';
-              document.getElementById('statusPasta').innerHTML = '<span class="text-success">✅ Pasta restaurada: <b>'+handle.name+'</b> - pode testar</span>';
-              resolve(handle);
-            }else resolve(null);
-          };
-          getReq.onerror=()=>resolve(null);
-        }catch{ resolve(null); }
-      };
-      req.onerror=()=>resolve(null);
-    }catch{ resolve(null); }
-  });
-}
-
-function baixarLogTXT(){if(!window._ultimoLog) return; let blob=new Blob([window._textoLogAtual||''],{type:'text/plain'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${_ultimoLog.log_id}_${_ultimoLog.serie}.txt`;a.click();}
-function ativarCamera(){areaScanner.style.display='block';html5QrcodeScanner=new Html5QrcodeScanner("reader",{fps:10,qrbox:250});html5QrcodeScanner.render(c=>{validarLeitura(stepAtual,c);});}
-function pararScanner(){if(html5QrcodeScanner){html5QrcodeScanner.clear();areaScanner.style.display='none';}}
+function salvarHandleIDB(h){ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; let tx=db.transaction('handles','readwrite'); tx.objectStore('handles').put(h,'pastaRede'); }catch{} }; }catch{} }
+function restaurarHandleIDB(){ return new Promise(res=>{ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; if(!db.objectStoreNames.contains('handles')){res(null);return;} let tx=db.transaction('handles','readonly'); let g=tx.objectStore('handles').get('pastaRede'); g.onsuccess=()=>{ if(g.result){ dirHandleRede=g.result; caminhoRede.value=g.result.name+' (restaurada) -> \\\\10.50.1.143\\Volume_1\\log leitores'; statusPasta.innerHTML='<span class="text-success">✅ Pasta restaurada: '+g.result.name+'</span>'; res(g.result);}else res(null); }; g.onerror=()=>res(null); }catch{res(null);} }; r.onerror=()=>res(null);}catch{res(null);} }); }
+function baixarLogTXT(){ if(!_ultimoLog) return; let blob=new Blob([_textoLogAtual],{type:'text/plain'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=gerarNomeArquivo(_ultimoLog,'txt'); a.click(); }
+function baixarLogJSON(){ if(!_ultimoLog) return; let blob=new Blob([JSON.stringify(_ultimoLog,null,2)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=gerarNomeArquivo(_ultimoLog,'json'); a.click(); }
 </script>
 </body>
 </html>
