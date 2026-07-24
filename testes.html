@@ -95,15 +95,13 @@ body{background:#f4f6f9;padding:20px}
 <div id="areaScanner" class="card mb-4 no-print" style="display:none;"><div class="card-body text-center"><h5><i class="bi bi-camera"></i> Aponte para: <span id="codigoEsperado" class="text-primary"></span></h5><div id="reader"></div><button class="btn btn-secondary mt-3" onclick="pararScanner()">Fechar Câmera</button></div></div>
 
 <div id="areaSequencia" style="display:none;" class="no-print">
-<div class="alert alert-warning"><strong><i class="bi bi-info-circle"></i> Instrução:</strong> Clique no campo amarelo e bipe o código com o leitor USB. <span class="float-end"><b id="infoResumo"></b> | Início: <b id="horaInicio">--:--:--</b></span></div>
-
-<div class="step-card" id="step1"><div class="d-flex align-items-center"><div class="step-numero me-3">1</div><div class="flex-grow-1"><h5 class="mb-1">QR Code</h5><small class="text-muted">Esperado: 6922711051772</small><div class="mt-2"><input type="text" class="form-control input-leitura" id="input1" placeholder="Clique aqui e bipe" autocomplete="off"><div class="codigo-lido mt-2" id="lido1"></div></div></div><div class="ms-3"><i class="bi bi-qr-code-scan" style="font-size:40px;color:#6c757d"></i></div></div></div>
-
-<div class="step-card" id="step2"><div class="d-flex align-items-center"><div class="step-numero me-3">2</div><div class="flex-grow-1"><h5 class="mb-1">Código de Barras 1D</h5><small class="text-muted">Esperado: 2 112345 678917</small><div class="mt-2"><input type="text" class="form-control input-leitura" id="input2" placeholder="Aguardando..." autocomplete="off" disabled><div class="codigo-lido mt-2" id="lido2"></div></div></div><div class="ms-3"><i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i></div></div></div>
-
-<div class="step-card" id="step3"><div class="d-flex align-items-center"><div class="step-numero me-3">3</div><div class="flex-grow-1"><h5 class="mb-1">Código de Barras 1D - 2</h5><small class="text-muted">Esperado: 6901028075763</small><div class="mt-2"><input type="text" class="form-control input-leitura" id="input3" placeholder="Aguardando..." autocomplete="off" disabled><div class="codigo-lido mt-2" id="lido3"></div></div></div><div class="ms-3"><i class="bi bi-upc-scan" style="font-size:40px;color:#6c757d"></i></div></div></div>
-
-<div class="step-card" id="step4"><div class="d-flex align-items-center"><div class="step-numero me-3">4</div><div class="flex-grow-1"><h5 class="mb-1">Versão Firmware</h5><small class="text-muted">Qualquer leitura</small><div class="mt-2"><input type="text" class="form-control input-leitura" id="input4" placeholder="Aguardando..." autocomplete="off" disabled><div class="codigo-lido mt-2" id="lido4"></div></div></div><div class="ms-3"><i class="bi bi-cpu" style="font-size:40px;color:#6c757d"></i></div></div></div>
+<div class="alert alert-warning d-flex justify-content-between flex-wrap">
+<div><strong><i class="bi bi-info-circle"></i> Instrução:</strong> Clique no campo amarelo e bipe o código. O nome do código vem do cadastro do Produto.</div>
+<div><b id="infoResumo"></b> | Início: <b id="horaInicio">--:--:--</b> | Total: <b id="totalCodigos">0</b> códigos</div>
+</div>
+<div id="stepsContainer">
+<!-- Steps serão gerados dinamicamente com o NOME DO CODIGO do produto -->
+</div>
 </div>
 
 <div id="resultadoFinal" class="card mt-4 no-print" style="display:none;"></div>
@@ -123,7 +121,7 @@ body{background:#f4f6f9;padding:20px}
 
 <script>
 let stepAtual=0,dadosTeste={},html5QrcodeScanner=null,inicioTimestamp=null,configFixa=null;
-const codigosEsperados={1:"6922711051772",2:"2112345678917",3:"6901028075763",4:null};
+let codigosEsperados={}; let listaCodigosProduto=[]; // será preenchida dinamicamente
 let dirHandleRede=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -220,18 +218,73 @@ function salvarConfigFixa(){
 function editarConfigFixa(){ const statusEl=document.getElementById('statusConfig'); if(statusEl){ statusEl.innerText='Editando...'; statusEl.className='badge bg-warning text-dark'; } }
 function sanitizeNome(s){ return (s||'').toString().replace(/[\\\/:*?"<>|]/g,'-').replace(/\s+/g,'_').slice(0,40); }
 
+function getCodigosDoProduto(codigoProduto){
+  const produtos = JSON.parse(localStorage.getItem('produtos')||'[]');
+  const prod = produtos.find(p=>p.codigo===codigoProduto);
+  if(prod && prod.codigos && prod.codigos.length>0){
+    return prod.codigos.sort((a,b)=>a.ordem-b.ordem);
+  }
+  // Fallback padrão EL250
+  return [
+    {ordem:1, nome:'QR Code - Etiqueta Produto', valorEsperado:'6922711051772', icone:'qr-code-scan'},
+    {ordem:2, nome:'Código de Barras 1D - Caixa', valorEsperado:'2112345678917', icone:'upc'},
+    {ordem:3, nome:'Código de Barras 1D - Produto', valorEsperado:'6901028075763', icone:'upc-scan'},
+    {ordem:4, nome:'Versão Firmware', valorEsperado:'', icone:'cpu'}
+  ];
+}
+
+function renderStepsCodigos(codigos){
+  const container = document.getElementById('stepsContainer');
+  document.getElementById('totalCodigos').innerText = codigos.length;
+  container.innerHTML = codigos.map((c, idx)=>{
+    const i = idx+1;
+    const esperadoTxt = c.valorEsperado ? `Esperado: ${c.valorEsperado}` : 'Aceita qualquer leitura';
+    const iconMap = {'qr-code-scan':'qr-code-scan','upc':'upc','upc-scan':'upc-scan','cpu':'cpu','tag':'tag'};
+    const icon = iconMap[c.icone] || 'upc-scan';
+    return `
+    <div class="step-card" id="step${i}">
+      <div class="d-flex align-items-center">
+        <div class="step-numero me-3">${i}</div>
+        <div class="flex-grow-1">
+          <h5 class="mb-1"><i class="bi bi-${icon}"></i> ${c.nome}</h5>
+          <small class="text-muted"><b>Nome do Código:</b> ${c.nome} | ${esperadoTxt}</small>
+          <div class="mt-2">
+            <input type="text" class="form-control input-leitura" id="input${i}" placeholder="${i===1?'Clique aqui e bipe - '+c.nome:'Aguardando: '+c.nome}" autocomplete="off" ${i!==1?'disabled':''}>
+            <div class="codigo-lido mt-2" id="lido${i}"></div>
+          </div>
+        </div>
+        <div class="ms-3 text-center"><span class="badge bg-secondary">${c.icone}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  // Recria listeners
+  document.querySelectorAll('.input-leitura').forEach((inp,i)=>{
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); validarLeitura(i+1, inp.value.trim()); }
+    });
+  });
+}
+
 function iniciarSequencia(){
   const prod=document.getElementById('produtoSel').value;
   const oper=document.getElementById('operadorSel').value;
   const model=document.getElementById('modeloSel').value;
   const serie=document.getElementById('serieSel').value.trim();
-  if(!prod||!oper||!model){ alert('ERRO: Selecione Produto (Código) e Operador - eles devem aparecer no dropdown. Se não aparecem, clique em Recarregar Listas ou cadastre em Produtos/Operadores'); return; }
+  if(!prod||!oper||!model){ alert('ERRO: Selecione Produto (Código) e Operador'); return; }
   if(!serie){ alert('Digite o Número de Série no campo separado'); return; }
   salvarConfigFixa();
+  
+  // Pega os códigos com NOME do cadastro do produto
+  listaCodigosProduto = getCodigosDoProduto(prod);
+  codigosEsperados = {};
+  listaCodigosProduto.forEach((c,idx)=>{ codigosEsperados[idx+1]=c.valorEsperado||null; });
+  
+  renderStepsCodigos(listaCodigosProduto);
+  
   inicioTimestamp=new Date();
   document.getElementById('horaInicio').innerText=inicioTimestamp.toLocaleTimeString('pt-BR');
   document.getElementById('infoResumo').innerText=`Produto: ${prod} | Modelo: ${model} | Operador: ${oper} | Série: ${serie}`;
-  dadosTeste={produto:prod,operador:oper,modelo:model,serie:serie,leituras:{},inicio:inicioTimestamp.toISOString()};
+  dadosTeste={produto:prod,operador:oper,modelo:model,serie:serie,leituras:{},inicio:inicioTimestamp.toISOString(), codigosNomes: listaCodigosProduto};
   document.getElementById('configCard').style.display='none';
   document.getElementById('cardSerie').style.display='none';
   document.getElementById('areaSequencia').style.display='block';
@@ -260,13 +313,13 @@ function validarLeitura(step,codigo){
   document.getElementById(`step${step}`).classList.remove('ativo'); document.getElementById(`step${step}`).classList.add(correto?'concluido':'erro');
   input.disabled=true;
   dadosTeste.leituras[step]={codigo,correto,esperado:esperado||'LIVRE',timestamp:new Date().toISOString(),hora:new Date().toLocaleTimeString('pt-BR')};
-  if(step<4) setTimeout(()=>ativarStep(step+1),700); else setTimeout(()=>finalizarSequencia(),700);
+  if(step < listaCodigosProduto.length) setTimeout(()=>ativarStep(step+1),700); else setTimeout(()=>finalizarSequencia(),700);
 }
 async function finalizarSequencia(){
   const fim=new Date(); const todos=Object.values(dadosTeste.leituras).every(l=>l.correto); const resultado=todos?'APROVADO':'REPROVADO'; const dur=((fim-inicioTimestamp)/1000).toFixed(1);
   const teste={id:Date.now().toString(),data:fim.toISOString(),tipo:'EL250',produtoCodigo:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado,leituras:dadosTeste.leituras,duracao:dur};
   let testes=JSON.parse(localStorage.getItem('testes')||'[]'); testes.unshift(teste); localStorage.setItem('testes',JSON.stringify(testes));
-  const log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),inicio_iso:dadosTeste.inicio,fim_iso:fim.toISOString(),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado,duracao_segundos:dur,leituras:dadosTeste.leituras,user_agent:navigator.userAgent,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+resultado).slice(0,32).toUpperCase()};
+  const codigosNomesParaLog = dadosTeste.codigosNomes || listaCodigosProduto; const log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),inicio_iso:dadosTeste.inicio,fim_iso:fim.toISOString(),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes: codigosNomesParaLog, user_agent:navigator.userAgent,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+resultado).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]'); logs.unshift(log); localStorage.setItem('logs_evidencia',JSON.stringify(logs)); window._ultimoLog=log;
   const resEl=document.getElementById('resultadoFinal');
   resEl.style.display='block';
@@ -316,7 +369,7 @@ DURACAO: ${log.duracao_segundos}s
 HASH: ${log.hash}
 ----------------------------------------
 LEITURAS:
-`+Object.entries(log.leituras).map(([k,v])=>` ${k}. Esperado=${v.esperado} => Lido=${v.codigo} [${v.correto?'OK':'FALHA'}] ${v.hora}`).join('\n')+`
+`+Object.entries(log.leituras).map(([k,v])=>{ let nome = (log.codigosNomes||[])[parseInt(k)-1]?.nome || `Codigo ${k}`; return ` ${k}. [${nome}] Esperado=${v.esperado} => Lido=${v.codigo} [${v.correto?'OK':'FALHA'}] ${v.hora}`; }).join('\n')+`
 ========================================
 Destino: \\\\10.50.1.143\\Volume_1\\log leitores
 `;
