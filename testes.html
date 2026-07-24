@@ -11,34 +11,38 @@
         *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Tahoma,sans-serif}
         body{background:#f4f6f9;padding:20px}
        .header-teste{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
-       .step-card{border:3px solid #dee2e6;border-radius:15px;padding:20px;margin-bottom:15px;transition:.3s}
+       .step-card{border:3px solid #dee2e6;border-radius:15px;padding:20px;margin-bottom:15px;transition:.3s;background:white}
        .step-card.ativo{border-color:#ffc107;background:#fff3cd;box-shadow:0 5px 15px rgba(255,193,7,.3)}
        .step-card.concluido{border-color:#198754;background:#d1e7dd}
        .step-card.erro{border-color:#dc3545;background:#f8d7da}
        .step-numero{width:40px;height:40px;background:#6c757d;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
-       .step-card.ativo.step-numero{background:#ffc107;color:#000}
-       .step-card.concluido.step-numero{background:#198754}
-       .step-card.erro.step-numero{background:#dc3545}
        .codigo-lido{font-family:monospace;font-size:18px;font-weight:bold;color:#0d6efd}
         #reader{border:3px solid #0d6efd;border-radius:10px;max-width:500px;margin:0 auto}
        .scan-ativo{background:#fff3cd!important;border:3px solid #ffc107!important;font-size:24px!important}
        .input-leitura{font-size:20px;padding:15px;text-align:center}
+       .log-box{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:15px;border-radius:8px;max-height:350px;overflow:auto;white-space:pre-wrap}
+       .serie-destaque{border:3px solid #198754;background:#d1e7dd;border-radius:12px}
+       .serie-destaque input{font-size:26px;font-weight:800;text-align:center;letter-spacing:1.5px}
+       @media print{body{background:white;padding:0}.no-print{display:none!important}#comprovante{display:block!important;border:2px solid #000;padding:20px}}
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="header-teste">
+        <div class="header-teste no-print">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h2><i class="bi bi-upc-scan"></i> Teste EL250 - Leitura Sequencial</h2>
                     <p class="mb-0">Bipe os 4 códigos na ordem correta</p>
                 </div>
-                <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
+                <div>
+                  <a href="logs.html" class="btn btn-warning me-2"><i class="bi bi-file-text"></i> Ver Logs</a>
+                  <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
+                </div>
             </div>
         </div>
 
-        <!-- CONFIGURAÇÃO -->
-        <div class="card mb-4" id="configCard">
+        <!-- CONFIGURAÇÃO ORIGINAL - ALTERADA: Produto, Operador, Modelo (1x) -->
+        <div class="card mb-3 no-print" id="configCard">
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
@@ -50,8 +54,8 @@
                         <select id="operadorSel" class="form-select form-select-lg"></select>
                     </div>
                     <div class="col-md-3">
-                        <label>Número de Série *</label>
-                        <input id="serieSel" class="form-control form-control-lg" placeholder="SN do leitor">
+                        <label>Modelo *</label>
+                        <input id="modeloSel" class="form-control form-control-lg" placeholder="Ex: 46EL250USC01" value="46EL250USC01">
                     </div>
                     <div class="col-md-3">
                         <label>Modo Leitura</label>
@@ -61,14 +65,32 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-success btn-lg w-100 mt-3" onclick="iniciarSequencia()">
-                    <i class="bi bi-play-circle"></i> INICIAR SEQUÊNCIA DE TESTES
-                </button>
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Produto, Operador e Modelo são preenchidos somente uma vez e ficam salvos</small>
+                    <span class="badge bg-success ms-auto" id="statusConfig" style="display:none;">Configuração salva</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAMPO SEPARADO PARA NÚMERO DE SÉRIE -->
+        <div class="card mb-4 no-print serie-destaque" id="cardSerie">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label class="fw-bold text-success"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE - CAMPO SEPARADO *</label>
+                        <input id="serieSel" class="form-control form-control-lg" placeholder="Bipe ou digite o número de série aqui" autocomplete="off">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success btn-lg w-100" onclick="iniciarSequencia()">
+                            <i class="bi bi-play-circle"></i> INICIAR SEQUÊNCIA DE TESTES
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- CÂMERA -->
-        <div id="areaScanner" class="card mb-4" style="display:none;">
+        <div id="areaScanner" class="card mb-4 no-print" style="display:none;">
             <div class="card-body text-center">
                 <h5><i class="bi bi-camera"></i> Aponte para: <span id="codigoEsperado" class="text-primary"></span></h5>
                 <div id="reader"></div>
@@ -76,13 +98,13 @@
             </div>
         </div>
 
-        <!-- SEQUÊNCIA DE LEITURA -->
-        <div id="areaSequencia" style="display:none;">
+        <!-- SEQUÊNCIA DE LEITURA - LAYOUT ORIGINAL -->
+        <div id="areaSequencia" style="display:none;" class="no-print">
             <div class="alert alert-warning">
                 <strong><i class="bi bi-info-circle"></i> Instrução:</strong> Clique no campo amarelo e bipe o código com o leitor USB. O leitor deve enviar Enter no final.
+                <span class="float-end"><b id="infoResumo"></b> | Início: <b id="horaInicio">--:--:--</b></span>
             </div>
             
-            <!-- STEP 1: QR CODE -->
             <div class="step-card" id="step1">
                 <div class="d-flex align-items-center">
                     <div class="step-numero me-3">1</div>
@@ -94,13 +116,10 @@
                             <div class="codigo-lido mt-2" id="lido1"></div>
                         </div>
                     </div>
-                    <div class="ms-3">
-                        <i class="bi bi-qr-code-scan" style="font-size:40px;color:#6c757d"></i>
-                    </div>
+                    <div class="ms-3"><i class="bi bi-qr-code-scan" style="font-size:40px;color:#6c757d"></i></div>
                 </div>
             </div>
 
-            <!-- STEP 2: CÓDIGO 1D 1 -->
             <div class="step-card" id="step2">
                 <div class="d-flex align-items-center">
                     <div class="step-numero me-3">2</div>
@@ -112,226 +131,154 @@
                             <div class="codigo-lido mt-2" id="lido2"></div>
                         </div>
                     </div>
-                    <div class="ms-3">
-                        <i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i>
-                    </div>
+                    <div class="ms-3"><i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i></div>
                 </div>
             </div>
 
-            <!-- STEP 3: CÓDIGO 1D 2 -->
             <div class="step-card" id="step3">
                 <div class="d-flex align-items-center">
                     <div class="step-numero me-3">3</div>
                     <div class="flex-grow-1">
-                        <h5 class="mb-1">Código de Barras 1D</h5>
+                        <h5 class="mb-1">Código de Barras 1D - 2</h5>
                         <small class="text-muted">Esperado: 6901028075763</small>
                         <div class="mt-2">
                             <input type="text" class="form-control input-leitura" id="input3" placeholder="Aguardando..." autocomplete="off" disabled>
                             <div class="codigo-lido mt-2" id="lido3"></div>
                         </div>
                     </div>
-                    <div class="ms-3">
-                        <i class="bi bi-upc" style="font-size:40px;color:#6c757d"></i>
-                    </div>
+                    <div class="ms-3"><i class="bi bi-upc-scan" style="font-size:40px;color:#6c757d"></i></div>
                 </div>
             </div>
 
-            <!-- STEP 4: FIRMWARE -->
             <div class="step-card" id="step4">
                 <div class="d-flex align-items-center">
                     <div class="step-numero me-3">4</div>
                     <div class="flex-grow-1">
-                        <h5 class="mb-1">Versão de Firmware</h5>
-                        <small class="text-muted">Bipe o código de versão</small>
+                        <h5 class="mb-1">Versão Firmware</h5>
+                        <small class="text-muted">Qualquer leitura</small>
                         <div class="mt-2">
                             <input type="text" class="form-control input-leitura" id="input4" placeholder="Aguardando..." autocomplete="off" disabled>
                             <div class="codigo-lido mt-2" id="lido4"></div>
                         </div>
                     </div>
-                    <div class="ms-3">
-                        <i class="bi bi-cpu" style="font-size:40px;color:#6c757d"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RESULTADO FINAL -->
-            <div id="resultadoFinal" class="card mt-4" style="display:none;">
-                <div class="card-body text-center">
-                    <h3 id="textoResultado"></h3>
-                    <p id="detalheResultado" class="mb-3"></p>
-                    <button class="btn btn-primary btn-lg" onclick="novoTeste()">
-                        <i class="bi bi-arrow-clockwise"></i> Novo Teste
-                    </button>
+                    <div class="ms-3"><i class="bi bi-cpu" style="font-size:40px;color:#6c757d"></i></div>
                 </div>
             </div>
         </div>
+
+        <div id="resultadoFinal" class="card mt-4 no-print" style="display:none;"></div>
+
+        <div id="comprovante" style="display:none;background:white;margin-top:20px;border:2px solid #000;padding:20px;">
+            <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:10px;"><div><h3 style="margin:0;font-weight:900;">'elgin</h3><small>CNPJ: 14.200.166/0005-90 - POLO INDUSTRIAL DE MANAUS</small></div><div style="text-align:right;"><div style="font-weight:900;font-size:18px;" id="compResultado">APROVADO</div><small id="compID"></small></div></div>
+            <h5 class="text-center mb-3">COMPROVANTE DE TESTE - EVIDÊNCIA</h5>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;" border="1" cellpadding="6"><tr><td style="font-weight:bold;">Início</td><td id="c_inicio"></td><td style="font-weight:bold;">Fim</td><td id="c_fim"></td></tr><tr><td style="font-weight:bold;">Produto / Modelo</td><td id="c_prod"></td><td style="font-weight:bold;">Série</td><td id="c_serie"></td></tr><tr><td style="font-weight:bold;">Operador</td><td id="c_oper"></td><td style="font-weight:bold;">Duração</td><td id="c_dur"></td></tr><tr><td style="font-weight:bold;">Hash</td><td colspan="3" id="c_hash" style="font-family:monospace;"></td></tr></table>
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px;" border="1" cellpadding="5"><thead><tr style="background:#eee;"><th>Etapa</th><th>Esperado</th><th>Lido</th><th>Status</th><th>Hora</th></tr></thead><tbody id="c_leituras"></tbody></table>
+            <div class="no-print text-center mt-3"><button class="btn btn-dark btn-sm" onclick="window.print()">Imprimir</button><button class="btn btn-outline-dark btn-sm ms-2" onclick="baixarLogTXT()">TXT</button><button class="btn btn-success btn-sm ms-2" onclick="proximoTeste()">Próxima Série (mantém config)</button></div>
+        </div>
+
+        <div id="areaLogTerminal" class="card mt-4 no-print" style="display:none;"><div class="card-header bg-dark text-white">LOG BRUTO</div><div class="card-body p-0"><div class="log-box" id="logTerminal"></div></div></div>
     </div>
 
-    <script>
-        let html5QrcodeScanner, stepAtual = 0, dadosTeste = {};
-        const codigosEsperados = {
-            1: '6922711051772',
-            2: '2112345678917',
-            3: '6901028075763',
-            4: null
-        };
+<script>
+let stepAtual=0,dadosTeste={},html5QrcodeScanner=null,inicioTimestamp=null;
+const codigosEsperados={1:"6922711051772",2:"2112345678917",3:"6901028075763",4:null};
 
-        if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            carregarProdutos();
-            carregarOperadores();
-            
-            // Captura Enter do leitor USB em qualquer input
-            document.addEventListener('keypress', e => {
-                if (e.key === 'Enter' && stepAtual > 0) {
-                    e.preventDefault();
-                    const input = document.getElementById(`input${stepAtual}`);
-                    if (input &&!input.disabled && input.value.trim()) {
-                        validarLeitura(stepAtual, input.value.trim());
-                    }
-                }
-            });
-        });
+document.addEventListener('DOMContentLoaded',()=>{
+  if(!localStorage.getItem('produtos')) localStorage.setItem('produtos',JSON.stringify([]));
+  if(!localStorage.getItem('operadores')) localStorage.setItem('operadores',JSON.stringify([{id:'1',matricula:'ADMIN',nome:'Administrador',status:'Ativo'}]));
+  if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
+  if(!localStorage.getItem('logs_evidencia')) localStorage.setItem('logs_evidencia',JSON.stringify([]));
+  carregarProdutos();carregarOperadores();carregarConfigFixa();
+  document.querySelectorAll('.input-leitura').forEach((inp,i)=>{inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validarLeitura(i+1,inp.value.trim());}});});
+  serieSel.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarSequencia();}});
+  produtoSel.addEventListener('change',()=>{let opt=produtoSel.options[produtoSel.selectedIndex]; if(opt.dataset.modelo) modeloSel.value=opt.dataset.modelo; salvarConfigFixa();});
+  operadorSel.addEventListener('change',salvarConfigFixa); modeloSel.addEventListener('change',salvarConfigFixa);
+});
 
-        function carregarProdutos() {
-            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-            document.getElementById('produtoSel').innerHTML = '<option value="">Selecione...</option>' + 
-                produtos.filter(p => p.tipo === 'EL250').map(p => `<option value="${p.codigo}" data-nome="${p.nome}" data-modelo="${p.modelo}">${p.codigo} - ${p.nome}</option>`).join('');
-        }
+function carregarProdutos(){
+  const produtos=JSON.parse(localStorage.getItem('produtos'))||[];
+  document.getElementById('produtoSel').innerHTML='<option value="">Selecione...</option>'+produtos.map(p=>`<option value="${p.codigo}" data-modelo="${p.modelo||''}">${p.codigo} - ${p.nome}</option>`).join('');
+}
+function carregarOperadores(){
+  const ops=JSON.parse(localStorage.getItem('operadores'))||[];
+  document.getElementById('operadorSel').innerHTML='<option value="">Selecione...</option>'+ops.filter(o=>o.status==='Ativo').map(o=>`<option value="${o.nome}">${o.matricula} - ${o.nome}</option>`).join('');
+}
+function carregarConfigFixa(){
+  const cfg=JSON.parse(localStorage.getItem('config_fixa_teste')||'null');
+  if(cfg){
+    if(cfg.produto) produtoSel.value=cfg.produto;
+    if(cfg.operador) operadorSel.value=cfg.operador;
+    if(cfg.modelo) modeloSel.value=cfg.modelo;
+    statusConfig.style.display='inline-block';
+  }
+}
+function salvarConfigFixa(){
+  if(!produtoSel.value && !operadorSel.value && !modeloSel.value) return;
+  const cfg={produto:produtoSel.value,operador:operadorSel.value,modelo:modeloSel.value};
+  localStorage.setItem('config_fixa_teste',JSON.stringify(cfg));
+  statusConfig.style.display='inline-block';
+}
 
-        function carregarOperadores() {
-            const ops = JSON.parse(localStorage.getItem('operadores')) || [];
-            document.getElementById('operadorSel').innerHTML = '<option value="">Selecione...</option>' + 
-                ops.filter(o => o.status === 'Ativo').map(o => `<option value="${o.nome}">${o.matricula} - ${o.nome}</option>`).join('');
-        }
-
-        function iniciarSequencia() {
-            if (!document.getElementById('produtoSel').value ||!document.getElementById('operadorSel').value ||!document.getElementById('serieSel').value) {
-                return alert('Preencha Produto, Operador e Série');
-            }
-            
-            dadosTeste = {
-                produto: document.getElementById('produtoSel').value,
-                operador: document.getElementById('operadorSel').value,
-                serie: document.getElementById('serieSel').value,
-                leituras: {}
-            };
-            
-            document.getElementById('configCard').style.display = 'none';
-            document.getElementById('areaSequencia').style.display = 'block';
-            
-            ativarStep(1);
-            if (document.getElementById('modoLeitura').value === 'camera') ativarCamera();
-        }
-
-        function ativarStep(num) {
-            stepAtual = num;
-            document.querySelectorAll('.step-card').forEach((card, i) => {
-                card.classList.remove('ativo');
-                if (i + 1 === num) card.classList.add('ativo');
-            });
-            
-            const input = document.getElementById(`input${num}`);
-            input.disabled = false;
-            input.classList.add('scan-ativo');
-            input.focus();
-            input.select();
-            
-            if (document.getElementById('modoLeitura').value === 'camera') {
-                document.getElementById('codigoEsperado').innerText = codigosEsperados[num] || 'Qualquer código';
-            }
-        }
-
-        function validarLeitura(step, codigo) {
-            if (!codigo) return;
-            
-            const esperado = codigosEsperados[step];
-            const codigoLimpo = codigo.replace(/\s/g,'');
-            const esperadoLimpo = esperado? esperado.replace(/\s/g,'') : null;
-            const correto =!esperado || codigoLimpo === esperadoLimpo;
-            
-            const input = document.getElementById(`input${step}`);
-            input.value = codigo;
-            input.classList.remove('scan-ativo');
-            
-            document.getElementById(`lido${step}`).innerHTML = `<i class="bi bi-${correto? 'check-circle-fill text-success' : 'x-circle-fill text-danger'}"></i> Lido: ${codigo} ${correto? '✓' : '✗'}`;
-            document.getElementById(`step${step}`).classList.remove('ativo');
-            document.getElementById(`step${step}`).classList.add(correto? 'concluido' : 'erro');
-            input.disabled = true;
-            
-            dadosTeste.leituras[step] = { codigo, correto, esperado };
-            
-            if (step < 4) {
-                setTimeout(() => ativarStep(step + 1), 800);
-            } else {
-                setTimeout(() => finalizarSequencia(), 800);
-            }
-        }
-
-        function finalizarSequencia() {
-            const todosCorretos = Object.values(dadosTeste.leituras).every(l => l.correto);
-            const resultado = todosCorretos? 'APROVADO' : 'REPROVADO';
-            
-            const teste = {
-                id: Date.now().toString(),
-                data: new Date().toISOString(),
-                tipo: 'EL250',
-                produtoCodigo: dadosTeste.produto,
-                serie: dadosTeste.serie,
-                operador: dadosTeste.operador,
-                resultado: resultado,
-                leituras: dadosTeste.leituras
-            };
-            
-            let testes = JSON.parse(localStorage.getItem('testes'));
-            testes.unshift(teste);
-            localStorage.setItem('testes', JSON.stringify(testes));
-            
-            document.getElementById('resultadoFinal').style.display = 'block';
-            document.getElementById('resultadoFinal').className = `card mt-4 ${todosCorretos? 'bg-success' : 'bg-danger'} text-white`;
-            document.getElementById('textoResultado').innerHTML = `<i class="bi bi-${todosCorretos? 'check' : 'x'}-circle-fill"></i> ${resultado}`;
-            document.getElementById('detalheResultado').innerText = `Série: ${dadosTeste.serie} | ${Object.values(dadosTeste.leituras).filter(l => l.correto).length}/4 códigos corretos`;
-            
-            pararScanner();
-        }
-
-        function ativarCamera() {
-            document.getElementById('areaScanner').style.display = 'block';
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
-            html5QrcodeScanner.render(codigo => {
-                const input = document.getElementById(`input${stepAtual}`);
-                if (input &&!input.disabled) {
-                    input.value = codigo;
-                    validarLeitura(stepAtual, codigo);
-                }
-            }, () => {});
-        }
-
-        function pararScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-                document.getElementById('areaScanner').style.display = 'none';
-            }
-        }
-
-        function novoTeste() {
-            stepAtual = 0;
-            dadosTeste = {};
-            document.getElementById('areaSequencia').style.display = 'none';
-            document.getElementById('resultadoFinal').style.display = 'none';
-            document.getElementById('configCard').style.display = 'block';
-            document.getElementById('serieSel').value = '';
-            document.querySelectorAll('.step-card').forEach(card => {
-                card.classList.remove('ativo', 'concluido', 'erro');
-            });
-            document.querySelectorAll('.input-leitura').forEach(input => {
-                input.value = '';
-                input.disabled = true;
-                input.classList.remove('scan-ativo');
-            });
-            document.querySelectorAll('.codigo-lido').forEach(div => div.innerHTML = '');
-        }
-    </script>
+function iniciarSequencia(){
+  if(!produtoSel.value||!operadorSel.value||!modeloSel.value) return alert('Preencha Produto, Operador e Modelo (uma vez só)');
+  if(!serieSel.value.trim()) return alert('Digite o Número de Série no campo separado');
+  salvarConfigFixa();
+  inicioTimestamp=new Date();
+  horaInicio.innerText=inicioTimestamp.toLocaleTimeString('pt-BR');
+  infoResumo.innerText=`${produtoSel.value} | ${operadorSel.value} | ${modeloSel.value} | SN: ${serieSel.value.trim()}`;
+  dadosTeste={produto:produtoSel.value,operador:operadorSel.value,modelo:modeloSel.value,serie:serieSel.value.trim(),leituras:{},inicio:inicioTimestamp.toISOString()};
+  configCard.style.display='none'; cardSerie.style.display='none';
+  areaSequencia.style.display='block';
+  ativarStep(1);
+  if(modoLeitura.value==='camera') ativarCamera();
+}
+function ativarStep(num){
+  stepAtual=num;
+  document.querySelectorAll('.step-card').forEach((card,i)=>{card.classList.remove('ativo'); if(i+1===num) card.classList.add('ativo');});
+  const input=document.getElementById(`input${num}`); input.disabled=false; input.classList.add('scan-ativo'); input.focus();
+  if(modoLeitura.value==='camera') codigoEsperado.innerText=codigosEsperados[num]||'Qualquer código';
+}
+function validarLeitura(step,codigo){
+  if(!codigo) return;
+  const esperado=codigosEsperados[step];
+  const correto=!esperado||codigo.replace(/\s/g,'')===esperado.replace(/\s/g,'');
+  const input=document.getElementById(`input${step}`);
+  input.value=codigo; input.classList.remove('scan-ativo');
+  document.getElementById(`lido${step}`).innerHTML=`<i class="bi bi-${correto?'check-circle-fill text-success':'x-circle-fill text-danger'}"></i> Lido: ${codigo} ${correto?'✓':'✗'}`;
+  document.getElementById(`step${step}`).classList.remove('ativo'); document.getElementById(`step${step}`).classList.add(correto?'concluido':'erro');
+  input.disabled=true;
+  dadosTeste.leituras[step]={codigo,correto,esperado:esperado||'LIVRE',timestamp:new Date().toISOString(),hora:new Date().toLocaleTimeString('pt-BR')};
+  if(step<4) setTimeout(()=>ativarStep(step+1),700); else setTimeout(()=>finalizarSequencia(),700);
+}
+function finalizarSequencia(){
+  const fim=new Date(); const todos=Object.values(dadosTeste.leituras).every(l=>l.correto); const resultado=todos?'APROVADO':'REPROVADO'; const dur=((fim-inicioTimestamp)/1000).toFixed(1);
+  const teste={id:Date.now().toString(),data:fim.toISOString(),produtoCodigo:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado,leituras:dadosTeste.leituras,duracao:dur};
+  let testes=JSON.parse(localStorage.getItem('testes')); testes.unshift(teste); localStorage.setItem('testes',JSON.stringify(testes));
+  const log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),inicio_iso:dadosTeste.inicio,fim_iso:fim.toISOString(),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado,duracao_segundos:dur,leituras:dadosTeste.leituras,user_agent:navigator.userAgent,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+resultado).slice(0,32).toUpperCase()};
+  let logs=JSON.parse(localStorage.getItem('logs_evidencia')); logs.unshift(log); localStorage.setItem('logs_evidencia',JSON.stringify(logs)); window._ultimoLog=log;
+  resultadoFinal.style.display='block';
+  resultadoFinal.innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white rounded"><h2>${resultado}</h2><p>${dadosTeste.produto} | ${dadosTeste.modelo} | Série: ${dadosTeste.serie} | ${dur}s</p><button class="btn btn-light btn-sm me-2" onclick="comprovante.scrollIntoView({behavior:'smooth'})">Ver Comprovante / Log</button><button class="btn btn-outline-light btn-sm" onclick="proximoTeste()">Próxima Série</button></div>`;
+  preencherComprovante(log); pararScanner();
+}
+function preencherComprovante(log){
+  comprovante.style.display='block'; areaLogTerminal.style.display='block';
+  compResultado.innerText=log.resultado; compID.innerText=log.log_id; c_inicio.innerText=log.inicio_br; c_fim.innerText=log.fim_br; c_prod.innerText=log.produto+' / '+log.modelo; c_serie.innerText=log.serie; c_oper.innerText=log.operador; c_dur.innerText=log.duracao_segundos+'s'; c_hash.innerText=log.hash;
+  c_leituras.innerHTML=Object.entries(log.leituras).map(([k,v])=>`<tr><td>${k}</td><td>${v.esperado}</td><td style="font-family:monospace;">${v.codigo}</td><td>${v.correto?'OK':'FALHA'}</td><td>${v.hora}</td></tr>`).join('');
+  logTerminal.innerText=`[ELGIN - LOG EVIDÊNCIA]\nLOG_ID: ${log.log_id}\nPRODUTO: ${log.produto} MODELO: ${log.modelo}\nSERIE: ${log.serie}\nOPERADOR: ${log.operador}\nRESULTADO: ${log.resultado}\nDURACAO: ${log.duracao_segundos}s\nHASH: ${log.hash}\nLEITURAS:\n`+Object.entries(log.leituras).map(([k,v])=>` ${k}. ${v.esperado} => ${v.codigo} [${v.correto?'OK':'FALHA'}] ${v.hora}`).join('\n');
+  comprovante.scrollIntoView({behavior:'smooth'});
+}
+function proximoTeste(){
+  serieSel.value='';
+  document.querySelectorAll('.input-leitura').forEach(i=>{i.value='';i.disabled=true;i.classList.remove('scan-ativo');});
+  document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('ativo','concluido','erro'));
+  document.querySelectorAll('.codigo-lido').forEach(d=>d.innerHTML='');
+  areaSequencia.style.display='none'; resultadoFinal.style.display='none'; comprovante.style.display='none'; areaLogTerminal.style.display='none';
+  configCard.style.display='block'; cardSerie.style.display='block';
+  serieSel.focus();
+}
+function baixarLogTXT(){let blob=new Blob([logTerminal.innerText],{type:'text/plain'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${_ultimoLog.log_id}_${_ultimoLog.serie}.txt`;a.click();}
+function ativarCamera(){areaScanner.style.display='block';html5QrcodeScanner=new Html5QrcodeScanner("reader",{fps:10,qrbox:{width:250,height:150}});html5QrcodeScanner.render(c=>{validarLeitura(stepAtual,c);});}
+function pararScanner(){if(html5QrcodeScanner){html5QrcodeScanner.clear();areaScanner.style.display='none';}}
+</script>
 </body>
 </html>
