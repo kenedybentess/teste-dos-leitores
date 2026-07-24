@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Testes EL250 - FINAL SEM MODO</title>
+<title>Testes EL250 - FINAL COMPARTILHADO</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
@@ -19,26 +19,61 @@
 @keyframes piscar{0%{box-shadow:0 0 0 0 rgba(25,135,84,.7)}70%{box-shadow:0 0 0 15px rgba(25,135,84,0)}100%{box-shadow:0 0 0 0 rgba(25,135,84,0)}}
 .serie-box input{font-size:32px;font-weight:900;text-align:center;letter-spacing:2px;text-transform:uppercase}
 .rede-box{border:2px dashed #0d6efd;background:#e7f1ff;border-radius:12px}
+.config-share{background:#fff3cd;border:2px solid #ffc107;border-radius:12px}
 </style>
 </head>
 <body>
 <div class="container-fluid">
-<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250 - Fluxo Contínuo</h2><small>Produto/Operador/Modelo 1x • Série separado • Auto volta p/ próximo • SEM campo Modo • Log: CODIGO_MODELO</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="produtos.html" class="btn btn-info btn-sm me-2">Produtos</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
+<div class="header d-flex justify-content-between align-items-center"><div><h2 class="mb-1"><i class="bi bi-upc-scan"></i> Teste EL250 - Multi-PC</h2><small>1 cadastro de produtos para todos os PCs • Auto volta • Logo Elgin • Sem Modo</small></div><div><a href="logs.html" class="btn btn-warning btn-sm me-2">Logs</a><a href="produtos.html" class="btn btn-info btn-sm me-2">Produtos</a><a href="index.html" class="btn btn-light btn-sm">Dashboard</a></div></div>
 
+<!-- CONFIG COMPARTILHADA - NOVO -->
+<div class="card config-share mb-3 no-print" id="cardShare">
+<div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+<b><i class="bi bi-share"></i> CADASTRO ÚNICO PARA VÁRIOS COMPUTADORES</b>
+<small class="badge bg-dark">Usando: \\10.50.1.143\Volume_1\log leitores\config\</small>
+</div>
+<div class="card-body py-2">
+<div class="row g-2 align-items-center">
+<div class="col-md-4">
+<div class="small fw-bold">Como funciona:</div>
+<small class="text-muted" style="font-size:10px;">Salve os produtos 1x na pasta da rede. Todos os PCs carregam automaticamente do mesmo arquivo.</small>
+<div class="mt-2 d-flex gap-2">
+<button class="btn btn-dark btn-sm" onclick="salvarProdutosNaRede()"><i class="bi bi-cloud-upload"></i> Salvar Produtos na Rede</button>
+<button class="btn btn-success btn-sm" onclick="carregarProdutosDaRede()"><i class="bi bi-cloud-download"></i> Carregar da Rede</button>
+</div>
+</div>
+<div class="col-md-4">
+<label class="small fw-bold">Status compartilhado</label>
+<div id="statusShare" class="small p-2 bg-white rounded border" style="min-height:60px;font-size:11px;">Tentando carregar produtos.json compartilhado...</div>
+<input type="file" id="fileImport" accept=".json" style="display:none;" onchange="importarJSON(event)">
+</div>
+<div class="col-md-4">
+<div class="d-flex gap-2 flex-wrap">
+<button class="btn btn-outline-primary btn-sm" onclick="exportarProdutos()"><i class="bi bi-download"></i> Exportar produtos.json</button>
+<button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fileImport').click()"><i class="bi bi-upload"></i> Importar produtos.json</button>
+<button class="btn btn-outline-info btn-sm" onclick="forcarRecarregarTudo()"><i class="bi bi-arrow-clockwise"></i> Recarregar Tudo</button>
+</div>
+<small class="text-muted d-block mt-2" style="font-size:10px;"><b>Opção 1 (Recomendado):</b> Coloque todos os PCs para abrir o sistema via <code>http://IP_DO_PC_PRINCIPAL:8000</code> rodando <code>python -m http.server</code> na pasta. Assim todos usam o mesmo produtos.json automaticamente.<br><b>Opção 2:</b> Salve produtos na pasta de rede e clique em Carregar da Rede em cada PC.</small>
+</div>
+</div>
+</div>
+</div>
+
+<!-- REDE LOGS -->
 <div class="card rede-box mb-3 no-print" id="cardRede">
 <div class="card-body py-2">
 <div class="row align-items-center g-2">
 <div class="col-md-5">
-<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> PASTA REDE: \\10.50.1.143\Volume_1\log leitores</label>
+<label class="small fw-bold text-primary"><i class="bi bi-hdd-network"></i> LOGS: \\10.50.1.143\Volume_1\log leitores</label>
 <div class="d-flex gap-2 mt-1">
-<button class="btn btn-primary btn-sm" onclick="selecionarPastaRede()">Selecionar Pasta</button>
-<button class="btn btn-success btn-sm" onclick="forcarSalvarRede()">Salvar Agora</button>
+<button class="btn btn-primary btn-sm" onclick="selecionarPastaRede()">Selecionar Pasta Logs</button>
+<button class="btn btn-success btn-sm" onclick="forcarSalvarRede()">Salvar Log Agora</button>
 <button class="btn btn-outline-dark btn-sm" onclick="testarPastaRede()">Testar</button>
 </div>
 </div>
 <div class="col-md-4">
 <input id="caminhoRede" class="form-control form-control-sm" readonly value="\\10.50.1.143\Volume_1\log leitores">
-<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:32px;font-size:11px;">Selecione a pasta da rede</div>
+<div id="statusPasta" class="small mt-1 p-1 bg-white rounded border" style="min-height:32px;font-size:11px;">Selecione a pasta</div>
 </div>
 <div class="col-md-3">
 <div class="form-check"><input class="form-check-input" type="checkbox" id="chkAutoSalvar" checked><label class="form-check-label small fw-bold" for="chkAutoSalvar">Salvar auto na rede</label></div>
@@ -49,7 +84,7 @@
 </div>
 
 <div class="card config-fixed mb-3 no-print" id="cardConfigFixa">
-<div class="card-header bg-primary text-white d-flex justify-content-between"><b><i class="bi bi-gear"></i> CONFIGURAÇÃO FIXA (preenche 1x)</b><small id="statusConfig" class="badge bg-light text-primary">Carregando...</small></div>
+<div class="card-header bg-primary text-white d-flex justify-content-between"><b><i class="bi bi-gear"></i> CONFIGURAÇÃO FIXA (1x)</b><small id="statusConfig" class="badge bg-light text-primary">Carregando...</small></div>
 <div class="card-body"><div class="row g-2">
 <div class="col-md-4"><label class="small fw-bold">Produto (Código) *</label><select id="produtoSel" class="form-select form-select-lg"></select></div>
 <div class="col-md-4"><label class="small fw-bold">Operador *</label><select id="operadorSel" class="form-select form-select-lg"></select></div>
@@ -61,30 +96,30 @@
 <div class="card serie-box mb-4 no-print" id="cardSerie">
 <div class="card-body">
 <div class="row align-items-end">
-<div class="col-md-8"><label class="small text-warning fw-bold"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE - BIPE AQUI *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui - foco automático" autocomplete="off"></div>
-<div class="col-md-4"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()"><i class="bi bi-play-fill"></i> INICIAR TESTE</button><small class="text-white-50 d-block text-center mt-1">Enter também inicia</small></div>
+<div class="col-md-8"><label class="small text-warning fw-bold"><i class="bi bi-upc-scan"></i> NÚMERO DE SÉRIE - BIPE AQUI *</label><input id="serieSel" class="form-control form-control-lg" placeholder="Bipe SN aqui" autocomplete="off"></div>
+<div class="col-md-4"><button class="btn btn-success btn-lg w-100" style="height:58px;" onclick="iniciarSequencia()"><i class="bi bi-play-fill"></i> INICIAR TESTE</button></div>
 </div>
-<div id="msgAutoVolta" class="alert alert-success mt-3" style="display:none;"><i class="bi bi-arrow-clockwise"></i> <b>Teste finalizado!</b> Voltando para próximo em <b id="contadorRegressivo">3</b>s... <span class="float-end">Hoje: <b id="totalHoje">0</b></span></div>
+<div id="msgAutoVolta" class="alert alert-success mt-3" style="display:none;"><i class="bi bi-arrow-clockwise"></i> Voltando para próximo em <b id="contadorRegressivo">3</b>s... <span class="float-end">Hoje: <b id="totalHoje">0</b></span></div>
 </div>
 </div>
 
 <div id="areaSequencia" class="no-print" style="display:none;">
-<div class="alert alert-info py-2 d-flex justify-content-between"><span><b id="infoResumo"></b></span><span>Início: <b id="horaInicio"></b> | <b id="totalCodigos">0</b> códigos</span></div>
+<div class="alert alert-info py-2 d-flex justify-content-between"><span><b id="infoResumo"></b></span><span>Início: <b id="horaInicio"></b> | <b id="totalCodigos">0</b></span></div>
 <div id="stepsContainer"></div>
 </div>
 
 <div id="resultadoFinal" class="card mt-3 no-print" style="display:none;"></div>
 
 <div id="comprovante" style="display:none;background:white;border:2px solid #000;padding:18px;margin-top:18px;">
-<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Elgin_logo.svg/320px-Elgin_logo.svg.png" alt="elgin" style="height:32px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><div style="display:none;font-weight:900;font-size:24px;">'elgin</div><br><small>CNPJ 14.200.166/0005-90</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
+<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Elgin_logo.svg/320px-Elgin_logo.svg.png" alt="elgin" style="height:30px;" onerror="this.outerHTML='<b>\'elgin</b>'"><br><small>CNPJ 14.200.166/0005-90</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
 <h6 class="text-center my-3">COMPROVANTE - EVIDÊNCIA</h6>
 <table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;"><tr><td><b>Início</b></td><td id="c_inicio"></td><td><b>Fim</b></td><td id="c_fim"></td></tr><tr><td><b>Produto (Código)</b></td><td id="c_prod"></td><td><b>Modelo</b></td><td id="c_model"></td></tr><tr><td><b>Série</b></td><td id="c_serie"></td><td><b>Operador</b></td><td id="c_oper"></td></tr><tr><td><b>Duração</b></td><td id="c_dur"></td><td><b>Hash</b></td><td id="c_hash" style="font-family:monospace;font-size:9px;"></td></tr></table>
 <table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;"><thead><tr style="background:#eee;"><th># - Nome do Código</th><th>Esperado</th><th>Lido</th><th>Status</th><th>Hora</th></tr></thead><tbody id="c_leituras"></tbody></table>
 <div class="no-print mt-2 small bg-light p-2 rounded"><b>Arquivo:</b> <span id="nomeArquivoGerado" style="font-family:monospace;"></span></div>
-<div class="no-print text-center mt-3 d-flex justify-content-center gap-2 flex-wrap">
+<div class="no-print text-center mt-3 d-flex gap-2 justify-content-center flex-wrap">
 <button class="btn btn-dark btn-sm" onclick="window.print()">Imprimir</button>
 <button class="btn btn-primary btn-sm" onclick="forcarSalvarRede()">Salvar na Rede</button>
-<button class="btn btn-success btn-sm" onclick="voltarParaSerieManual()"><i class="bi bi-upc-scan"></i> Próximo Leitor</button>
+<button class="btn btn-success btn-sm" onclick="voltarParaSerieManual()">Próximo Leitor</button>
 </div>
 <div id="statusSalvoRede" class="mt-2 small text-center"></div>
 </div>
@@ -95,11 +130,11 @@
 <script>
 let stepAtual=0,dadosTeste={},inicioTimestamp=null,configFixa=null;
 let codigosEsperados={}, listaCodigosProduto=[];
-let dirHandleRede=null;
+let dirHandleRede=null, dirHandleConfig=null;
 let contadorInterval=null;
 
-document.addEventListener('DOMContentLoaded',()=>{
-  inicializarDados();
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await inicializarDadosCompartilhados();
   carregarProdutos();
   carregarOperadores();
   carregarConfigFixa();
@@ -108,7 +143,29 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('serieSel').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarSequencia();}});
 });
 
-function inicializarDados(){
+async function inicializarDadosCompartilhados(){
+  // Tenta carregar do servidor (se rodar via http://) primeiro - MELHOR PARA MULTI-PC
+  try{
+    const respProd = await fetch('./produtos.json?_='+Date.now());
+    if(respProd.ok){
+      const produtos = await respProd.json();
+      if(produtos.length>0){
+        localStorage.setItem('produtos', JSON.stringify(produtos));
+        document.getElementById('statusShare').innerHTML='<span class="text-success">✅ Produtos carregados de <b>produtos.json</b> (servidor compartilhado)<br>Todos os PCs usando mesmo arquivo!</span>';
+        console.log('Produtos carregados via fetch produtos.json');
+      }
+    }
+  }catch(e){ console.log('Sem produtos.json no servidor, usando localStorage'); }
+
+  try{
+    const respOp = await fetch('./operadores.json?_='+Date.now());
+    if(respOp.ok){
+      const ops = await respOp.json();
+      if(ops.length>0) localStorage.setItem('operadores', JSON.stringify(ops));
+    }
+  }catch(e){}
+
+  // Fallback localStorage
   let produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
   if(produtos.length===0){
     produtos=[
@@ -120,6 +177,7 @@ function inicializarDados(){
       ]}
     ];
     localStorage.setItem('produtos',JSON.stringify(produtos));
+    document.getElementById('statusShare').innerHTML='<span class="text-warning">⚠️ Produtos padrão criados localmente.<br>Clique em <b>Salvar Produtos na Rede</b> para compartilhar.</span>';
   }
   let ops=JSON.parse(localStorage.getItem('operadores')||'[]');
   if(ops.length===0){
@@ -132,6 +190,7 @@ function inicializarDados(){
   if(!localStorage.getItem('testes')) localStorage.setItem('testes',JSON.stringify([]));
   if(!localStorage.getItem('logs_evidencia')) localStorage.setItem('logs_evidencia',JSON.stringify([]));
 }
+
 function carregarProdutos(){
   const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
   const sel=document.getElementById('produtoSel');
@@ -194,14 +253,14 @@ function renderStepsCodigos(codigos){
   container.innerHTML=codigos.map((c,i)=>{
     const idx=i+1;
     const esperado=c.valorEsperado?`Esperado: ${c.valorEsperado}`:'Qualquer leitura';
-    return `<div class="step-card" id="step${idx}"><div class="d-flex justify-content-between"><div><b>${idx} - ${c.nome}</b> <span class="badge bg-info ms-2">${c.icone}</span><br><small class="text-muted"><b>Nome do Código:</b> ${c.nome} | ${esperado}</small></div><small id="lido${idx}"></small></div><input id="input${idx}" class="form-control input-leitura mt-2" placeholder="${idx===1?'Bipe: '+c.nome:'Aguardando '+c.nome}" ${idx!==1?'disabled':''}></div>`;
+    return `<div class="step-card" id="step${idx}"><div class="d-flex justify-content-between"><div><b>${idx} - ${c.nome}</b><br><small class="text-muted">${esperado}</small></div><small id="lido${idx}"></small></div><input id="input${idx}" class="form-control input-leitura mt-2" placeholder="${idx===1?'Bipe: '+c.nome:'Aguardando '+c.nome}" ${idx!==1?'disabled':''}></div>`;
   }).join('');
   document.querySelectorAll('.input-leitura').forEach((inp,i)=>{
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validarLeitura(i+1,inp.value.trim());}});
   });
 }
 function iniciarSequencia(){
-  if(!localStorage.getItem('config_fixa_teste')){alert('Salve a configuração fixa');return;}
+  if(!localStorage.getItem('config_fixa_teste')){alert('Salve a configuração');return;}
   const serie=document.getElementById('serieSel').value.trim();
   if(!serie){alert('Digite o NÚMERO DE SÉRIE');return;}
   const cfg=JSON.parse(localStorage.getItem('config_fixa_teste'));
@@ -237,7 +296,7 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><small>Voltando para próximo leitor...</small></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p></div>`;
   preencher(log);
   atualizarContadorTotal();
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
@@ -291,6 +350,127 @@ function atualizarContadorTotal(){
   const el=document.getElementById('totalHoje'); if(el) el.innerText=hojeQtd;
 }
 function baixarLogTXT(){ if(!window._ultimoLog) return; const blob=new Blob([window._textoLogAtual],{type:'text/plain'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=gerarNomeArquivo(window._ultimoLog,'txt');a.click(); }
+
+// ===== COMPARTILHAMENTO MULTI-PC =====
+async function salvarProdutosNaRede(){
+  try{
+    const produtos = localStorage.getItem('produtos');
+    const operadores = localStorage.getItem('operadores');
+    
+    // Tenta salvar na pasta de config da rede
+    if(!dirHandleConfig){
+      if(!window.showDirectoryPicker){ 
+        // Fallback: baixa arquivo para copiar manualmente
+        exportarProdutos();
+        alert('Selecione a pasta \\\\10.50.1.143\\Volume_1\\log leitores\\config\\ na próxima janela para salvar direto na rede');
+        dirHandleConfig = await window.showDirectoryPicker({mode:'readwrite'});
+      } else {
+        document.getElementById('statusShare').innerHTML='Selecione a pasta de rede para salvar...<br>Use: \\\\10.50.1.143\\Volume_1\\log leitores\\config\\';
+        dirHandleConfig = await window.showDirectoryPicker({mode:'readwrite'});
+      }
+    }
+    
+    await dirHandleConfig.requestPermission({mode:'readwrite'});
+    
+    // Salva produtos.json
+    let fileProd = await dirHandleConfig.getFileHandle('produtos.json', {create:true});
+    let writer = await fileProd.createWritable();
+    await writer.write(produtos);
+    await writer.close();
+    
+    // Salva operadores.json
+    let fileOp = await dirHandleConfig.getFileHandle('operadores.json', {create:true});
+    writer = await fileOp.createWritable();
+    await writer.write(operadores);
+    await writer.close();
+    
+    document.getElementById('statusShare').innerHTML='<span class="text-success">✅ Produtos salvos na rede!<br>Arquivo: produtos.json em '+dirHandleConfig.name+'<br>Todos os PCs podem carregar agora.</span>';
+    
+  }catch(e){
+    document.getElementById('statusShare').innerHTML='<span class="text-danger">❌ Erro: '+e.message+'<br>Use Exportar e copie manualmente para a pasta da rede.</span>';
+  }
+}
+
+async function carregarProdutosDaRede(){
+  try{
+    if(!dirHandleConfig){
+      document.getElementById('statusShare').innerHTML='Selecione a pasta com produtos.json...';
+      dirHandleConfig = await window.showDirectoryPicker({mode:'readwrite'});
+    }
+    
+    let fileProd = await dirHandleConfig.getFileHandle('produtos.json');
+    let file = await fileProd.getFile();
+    let text = await file.text();
+    let produtos = JSON.parse(text);
+    
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    
+    try{
+      let fileOp = await dirHandleConfig.getFileHandle('operadores.json');
+      let file2 = await fileOp.getFile();
+      let text2 = await file2.text();
+      localStorage.setItem('operadores', text2);
+    }catch{}
+    
+    carregarProdutos();
+    carregarOperadores();
+    
+    document.getElementById('statusShare').innerHTML='<span class="text-success">✅ Produtos carregados da rede! Total: '+produtos.length+' produtos<br>Agora este PC está sincronizado.</span>';
+    
+  }catch(e){
+    document.getElementById('statusShare').innerHTML='<span class="text-danger">❌ Erro ao carregar: '+e.message+'<br>Tente usar Importar arquivo.</span>';
+  }
+}
+
+function exportarProdutos(){
+  const produtos = localStorage.getItem('produtos')||'[]';
+  const blob = new Blob([produtos], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'produtos.json';
+  a.click();
+  
+  const ops = localStorage.getItem('operadores')||'[]';
+  const blob2 = new Blob([ops], {type:'application/json'});
+  const a2 = document.createElement('a');
+  a2.href = URL.createObjectURL(blob2);
+  a2.download = 'operadores.json';
+  a2.click();
+  
+  document.getElementById('statusShare').innerHTML='<span class="text-success">✅ Arquivos exportados! Copie produtos.json e operadores.json para<br>\\\\10.50.1.143\\Volume_1\\log leitores\\config\\<br>Ou para a mesma pasta do testes.html</span>';
+}
+
+function importarJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(file.name.includes('operador')){
+        localStorage.setItem('operadores', JSON.stringify(data));
+        carregarOperadores();
+        alert('Operadores importados: '+data.length);
+      }else{
+        localStorage.setItem('produtos', JSON.stringify(data));
+        carregarProdutos();
+        alert('Produtos importados: '+data.length);
+      }
+      document.getElementById('statusShare').innerHTML='<span class="text-success">✅ Importado de '+file.name+': '+data.length+' itens</span>';
+    }catch(err){ alert('Erro no JSON: '+err.message); }
+  };
+  reader.readAsText(file);
+}
+
+function forcarRecarregarTudo(){
+  inicializarDadosCompartilhados().then(()=>{
+    carregarProdutos();
+    carregarOperadores();
+    document.getElementById('statusShare').innerHTML+='<br>🔄 Listas recarregadas!';
+  });
+}
+
+// ===== REDE LOGS =====
 async function selecionarPastaRede(){
   try{
     if(!window.showDirectoryPicker){ alert('Use Chrome/Edge'); return; }
@@ -298,16 +478,22 @@ async function selecionarPastaRede(){
     await dirHandleRede.requestPermission({mode:'readwrite'});
     document.getElementById('caminhoRede').value=dirHandleRede.name+' -> \\\\10.50.1.143\\Volume_1\\log leitores';
     document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Pasta: <b>'+dirHandleRede.name+'</b></span>';
-    salvarHandleIDB(dirHandleRede);
+    salvarHandleIDB(dirHandleRede, 'pastaRede');
+    // Tenta usar mesma pasta para config
+    dirHandleConfig = dirHandleRede;
+    try{
+      dirHandleConfig = await dirHandleRede.getDirectoryHandle('config', {create:true});
+      document.getElementById('statusShare').innerHTML+='<br>✅ Pasta config encontrada/criada';
+    }catch{}
   }catch(e){ document.getElementById('statusPasta').innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
 async function forcarSalvarRede(){ if(!window._ultimoLog) return alert('Faça um teste'); await salvarLogNaRede(window._ultimoLog); }
 async function testarPastaRede(){
-  if(!dirHandleRede){ let h=await restaurarHandleIDB(); if(!h) return alert('Selecione a pasta'); }
+  if(!dirHandleRede){ let h=await restaurarHandleIDB('pastaRede'); if(!h) return alert('Selecione a pasta'); }
   try{ let f=await dirHandleRede.getFileHandle('TESTE_'+Date.now()+'.txt',{create:true}); let w=await f.createWritable(); await w.write('TESTE OK '+new Date().toLocaleString('pt-BR')); await w.close(); document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Teste OK em '+dirHandleRede.name+'</span>'; }catch(e){ document.getElementById('statusPasta').innerHTML='<span class="text-danger">❌ '+e.message+'</span>'; }
 }
 async function salvarLogNaRede(log){
-  if(!dirHandleRede){ dirHandleRede=await restaurarHandleIDB(); if(!dirHandleRede){ document.getElementById('statusPasta').innerHTML='⚠️ Selecione a pasta'; return; } }
+  if(!dirHandleRede){ dirHandleRede=await restaurarHandleIDB('pastaRede'); if(!dirHandleRede){ document.getElementById('statusPasta').innerHTML='⚠️ Selecione a pasta'; return; } }
   try{
     let dataHoje=new Date().toISOString().slice(0,10);
     let pasta=dirHandleRede;
@@ -320,8 +506,8 @@ async function salvarLogNaRede(log){
     document.getElementById('statusSalvoRede').innerHTML='<span class="text-success">✅ Salvo na rede: '+pasta.name+'/'+nomeTXT+'</span>';
   }catch(e){ document.getElementById('statusPasta').innerHTML='<span class="text-danger">❌ Erro: '+e.message+'</span>'; }
 }
-function salvarHandleIDB(h){ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; let tx=db.transaction('handles','readwrite'); tx.objectStore('handles').put(h,'pastaRede'); }catch{} }; }catch{} }
-function restaurarHandleIDB(){ return new Promise(res=>{ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; if(!db.objectStoreNames.contains('handles')){res(null);return;} let tx=db.transaction('handles','readonly'); let g=tx.objectStore('handles').get('pastaRede'); g.onsuccess=()=>{ if(g.result){ dirHandleRede=g.result; document.getElementById('caminhoRede').value=g.result.name+' (restaurada)'; document.getElementById('statusPasta').innerHTML='<span class="text-success">✅ Pasta restaurada: '+g.result.name+'</span>'; res(g.result);}else res(null); }; g.onerror=()=>res(null); }catch{res(null);} }; r.onerror=()=>res(null);}catch{res(null);} }); }
+function salvarHandleIDB(h, key='pastaRede'){ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; let tx=db.transaction('handles','readwrite'); tx.objectStore('handles').put(h,key); }catch{} }; }catch{} }
+function restaurarHandleIDB(key='pastaRede'){ return new Promise(res=>{ try{ let r=indexedDB.open('elgin_logs_db',1); r.onupgradeneeded=e=>{try{e.target.result.createObjectStore('handles');}catch{}}; r.onsuccess=()=>{ try{ let db=r.result; if(!db.objectStoreNames.contains('handles')){res(null);return;} let tx=db.transaction('handles','readonly'); let g=tx.objectStore('handles').get(key); g.onsuccess=()=>{ if(g.result){ if(key==='pastaRede') dirHandleRede=g.result; else dirHandleConfig=g.result; res(g.result);}else res(null); }; g.onerror=()=>res(null); }catch{res(null);} }; r.onerror=()=>res(null);}catch{res(null);} }); }
 </script>
 </body>
 </html>
