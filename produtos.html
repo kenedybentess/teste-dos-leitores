@@ -35,7 +35,7 @@ body{background:#f4f6f9;padding:20px}
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead><tr><th>Código</th><th>Nome</th><th>Modelo</th><th>Tipo</th><th>Códigos Teste</th><th style="width:150px">Ações</th></tr></thead>
+                    <thead><tr><th>Código</th><th>Nome</th><th>Modelo</th><th>Tipo</th><th>EAN13</th><th>Códigos Teste</th><th style="width:150px">Ações</th></tr></thead>
                     <tbody id="tabelaProdutos"></tbody>
                 </table>
             </div>
@@ -63,6 +63,11 @@ body{background:#f4f6f9;padding:20px}
             <option value="FLASH">FLASH</option>
             <option value="EL8600">EL8600</option>
         </select>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label><i class="bi bi-upc"></i> Código EAN13</label>
+        <input id="produtoEAN13" class="form-control" maxlength="13" placeholder="Ex: 7891234567890" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <small class="text-muted">13 dígitos - validação automática</small>
     </div>
 </div>
 
@@ -96,7 +101,7 @@ document.addEventListener('DOMContentLoaded',function(){
 function carregarProdutos(){
     const produtos=JSON.parse(localStorage.getItem('produtos'));
     const tbody=document.getElementById('tabelaProdutos');
-    tbody.innerHTML=produtos.length===0?'<tr><td colspan="6" class="text-center text-muted">Nenhum produto</td></tr>':
+    tbody.innerHTML=produtos.length===0?'<tr><td colspan="7" class="text-center text-muted">Nenhum produto</td></tr>':
     produtos.map(p=>{
         const qtdCodigos = p.codigos ? p.codigos.length : 0;
         return `<tr>
@@ -120,6 +125,7 @@ function abrirModalProduto(){
     document.getElementById('produtoNome').value='';
     document.getElementById('produtoModelo').value='';
     document.getElementById('produtoTipo').value='EL250';
+    document.getElementById('produtoEAN13').value='';
     document.getElementById('listaCodigos').innerHTML='';
     contadorCodigo = 0;
     atualizarCodigosPadrao();
@@ -181,14 +187,26 @@ function removerCodigo(id){
     document.getElementById(`codigo-${id}`).remove();
 }
 
+function validarEAN13(ean){
+    if(!ean) return true;
+    if(!/^\d{13}$/.test(ean)) return false;
+    let sum=0;
+    for(let i=0;i<12;i++){ sum+= parseInt(ean[i]) * (i%2===0?1:3); }
+    const check = (10 - (sum % 10)) % 10;
+    return check === parseInt(ean[12]);
+}
+
 function salvarProduto(){
     const id=document.getElementById('produtoId').value;
     const codigo=document.getElementById('produtoCodigo').value.trim();
     const nome=document.getElementById('produtoNome').value.trim();
     const modelo=document.getElementById('produtoModelo').value.trim();
     const tipo=document.getElementById('produtoTipo').value;
+    const ean13=document.getElementById('produtoEAN13').value.trim();
     
     if(!codigo||!nome||!modelo)return alert('Preencha todos os campos obrigatórios');
+    if(ean13 && !/^\d{13}$/.test(ean13)) return alert('EAN13 deve ter 13 dígitos');
+    if(ean13 && !validarEAN13(ean13)) return alert('EAN13 inválido - dígito verificador não confere');
     
     // Coleta códigos configurados
     const codigos = [];
@@ -207,7 +225,7 @@ function salvarProduto(){
     let produtos=JSON.parse(localStorage.getItem('produtos'));
     if(produtos.find(p=>p.codigo===codigo&&p.id!==id))return alert('Código já existe');
     
-    const produto = {id: id || Date.now().toString(), codigo, nome, modelo, tipo, codigos};
+    const produto = {id: id || Date.now().toString(), codigo, nome, modelo, tipo, ean13, codigos};
     
     if(id) produtos=produtos.map(p=>p.id===id?produto:p);
     else produtos.push(produto);
@@ -225,6 +243,7 @@ function editarProduto(id){
     document.getElementById('produtoNome').value=p.nome;
     document.getElementById('produtoModelo').value=p.modelo;
     document.getElementById('produtoTipo').value=p.tipo;
+    document.getElementById('produtoEAN13').value=p.ean13 || '';
     
     document.getElementById('listaCodigos').innerHTML='';
     contadorCodigo = 0;
