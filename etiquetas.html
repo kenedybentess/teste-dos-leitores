@@ -1,387 +1,564 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Etiquetas - Leitores PRO</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-body{background:#f4f6f9;padding:20px}
-.header-etq{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:25px;border-radius:15px;margin-bottom:30px}
-.etiqueta-preview{
-    width:378px;
-    height:340px;
-    border:2px solid #000;
-    background:white;
-    margin:0 auto;
-    padding:0;
-    font-size:7px;
-    line-height:1.1;
-}
-.etq-table{width:100%;height:100%;border-collapse:collapse;table-layout:fixed}
-.etq-table td{border:1px solid #000;padding:2px 3px;vertical-align:top;word-wrap:break-word}
-.etq-selo{
-    width:62px;height:62px;border:2px solid #000;border-radius:50%;margin:3px auto;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-size:5px;font-weight:bold;text-align:center;line-height:1.05;padding:2px
-}
-.etq-selo-num{font-size:16px;line-height:1;margin:1px 0}
-.etq-selo-dots{font-size:4px;letter-spacing:0.5px}
-.etq-selo-status{font-size:5px;margin-top:1px}
-.etq-barcode{text-align:center;padding:1px}
-.etq-barcode svg{max-width:100%;height:auto}
-.etq-logo{font-weight:bold;font-size:11px;padding:4px 6px;letter-spacing:0.5px}
-.etq-data{font-size:7px;text-align:center;padding:3px 5px}
-.etq-label{font-size:5.5px;font-weight:bold;text-transform:uppercase;display:block;margin-bottom:1px;letter-spacing:0.2px}
-.etq-value{font-size:7.5px;font-weight:normal}
-.etq-desc{font-size:6.5px;line-height:1.1}
-.etq-manaus{font-size:5.5px;text-align:center;padding:3px;line-height:1.2}
-@media print{
-    body{background:white;padding:0;margin:0}
-   .no-print{display:none!important}
- .etiqueta-preview{margin:0;border:none;page-break-inside:avoid}
-   @page{size:100mm 90mm;margin:0}
-}
-.zpl-box{background:#1e1e1e;color:#d4d4d4;padding:15px;border-radius:8px;font-family:'Courier New',monospace;font-size:11px;overflow-x:auto;white-space:pre;max-height:400px;overflow-y:auto}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Etiquetas - Posicionamento Livre</title>
+    <!-- Fonte para Código de Barras Real -->
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    <!-- Biblioteca Interact.js para Arrastar e Soltar -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Painel de Controle (Esquerda) */
+        .sidebar {
+            width: 390px;
+            background: #ffffff;
+            border-right: 1px solid #ddd;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .sidebar h2 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .row-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .row-inputs .form-group {
+            flex: 1;
+        }
+
+        .elemento-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .elemento-box h4 {
+            font-size: 11px;
+            color: #007bff;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-remover {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-remover:hover {
+            background: #bd2130;
+        }
+
+        .btn-add {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .btn-add:hover {
+            background: #138496;
+        }
+
+        .print-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .print-btn:hover {
+            background: #218838;
+        }
+
+        /* Área de Visualização (Direita) */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #e9ecef;
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+
+        #etiqueta {
+            background: #ffffff;
+            border: 2px solid #999;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Itens arrastáveis dentro da etiqueta */
+        .etiqueta-item-preview {
+            position: absolute;
+            user-select: none;
+            touch-action: none;
+            box-sizing: border-box;
+            border: 1px dashed #007bff;
+            background-color: rgba(0,123,255,0.03);
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .etiqueta-item-preview:hover {
+            background-color: rgba(0,123,255,0.1);
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .preview-barcode {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .barcode-font {
+            font-family: 'Libre Barcode 39', cursive;
+            line-height: 1;
+        }
+
+        .barcode-text {
+            font-family: Arial, sans-serif;
+        }
+
+        .preview-text {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            pointer-events: none;
+            padding: 0 2px;
+        }
+
+        .preview-linha {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .linha-interna {
+            background-color: #000;
+        }
+
+        /* Regras de Impressão: Remove molduras e bordas tracejadas */
+        @media print {
+            body { background: none; }
+            .sidebar { display: none; }
+            .preview-area { background: none; padding: 0; }
+            #etiqueta { border: none !important; box-shadow: none !important; }
+            .etiqueta-item-preview { border: none !important; background: transparent !important; }
+        }
+    </style>
 </head>
 <body>
-<div class="container-fluid no-print">
-    <div class="header-etq">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2><i class="bi bi-printer"></i> Gerador de Etiquetas EL250</h2>
-                <p class="mb-0">Padrão Elgin - 100mm x 90mm</p>
+
+    <!-- Painel de Controle -->
+    <div class="sidebar">
+        <h2>Configurar Etiqueta</h2>
+        <div class="row-inputs">
+            <div class="form-group">
+                <label>Largura (mm):</label>
+                <input type="number" id="inputWidth" value="100" oninput="renderizarEtiqueta()">
             </div>
-            <a href="index.html" class="btn btn-light"><i class="bi bi-arrow-left"></i> Dashboard</a>
+            <div class="form-group">
+                <label>Altura (mm):</label>
+                <input type="number" id="inputHeight" value="60" oninput="renderizarEtiqueta()">
+            </div>
         </div>
+
+        <h2>Elementos da Etiqueta</h2>
+        <p style="font-size: 11px; color: #666; margin-bottom: 8px;">Arraste os blocos na tela ao lado para posicionar.</p>
+        
+        <div id="container-elementos-form"></div>
+
+        <button class="btn-add" onclick="adicionarElemento()">+ Adicionar Elemento</button>
+        <button class="btn-add" style="background-color: #6c757d;" onclick="centralizarElementos()">Organizar em Pilha</button>
+        <button class="print-btn" onclick="window.print()">Imprimir Etiqueta</button>
     </div>
 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Dados da Etiqueta</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">CNPJ (Fixo)</label>
-                            <input id="cnpj" class="form-control form-control-sm" value="14.200.166/0005-90" readonly>
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Nº Inspetor Qualidade *</label>
-                            <input id="numInspetor" class="form-control form-control-sm" value="8" maxlength="2" placeholder="Ex: 8">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Status Qualidade</label>
-                            <select id="statusQualidade" class="form-select form-select-sm">
-                                <option value="APROVADO">APROVADO</option>
-                                <option value="Reprovado">Reprovado</option>
-                            </select>
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Código do Produto Elgin</label>
-                            <input id="codProduto" class="form-control form-control-sm" value="46ELP250BC000">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Descrição</label>
-                            <input id="descProduto" class="form-control form-control-sm" value="LEITOR COD BARRAS 1D 2D ELGIN BEMA EL250">
-                        </div>
-                        <div class="col-6 mb-2">
-                            <label class="small fw-bold">Vol. (Fixo)</label>
-                            <input id="vol" class="form-control form-control-sm" value="01" readonly>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <label class="small fw-bold">QTD. (Fixo)</label>
-                            <input id="qtd" class="form-control form-control-sm" value="01" readonly>
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Código Elgin</label>
-                            <input id="codElgin" class="form-control form-control-sm" value="46EL250USC01">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Código EAN 13</label>
-                            <input id="ean13" class="form-control form-control-sm" value="3424">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Número de Série</label>
-                            <input id="serie" class="form-control form-control-sm" value="26050001">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Código Adicional</label>
-                            <input id="codAdicional" class="form-control form-control-sm" value="125526000001210825">
-                        </div>
-                        <div class="col-12 mb-2">
-                            <label class="small fw-bold">Data</label>
-                            <input id="data" class="form-control form-control-sm" value="21/08/2025">
-                        </div>
-                    </div>
-                    <hr>
-                    <button class="btn btn-primary w-100 mb-2" onclick="gerarEtiqueta()">
-                        <i class="bi bi-arrow-clockwise"></i> Atualizar Preview
-                    </button>
-                    <button class="btn btn-success w-100 mb-2" onclick="window.print()">
-                        <i class="bi bi-printer-fill"></i> Imprimir Etiqueta
-                    </button>
-                    <button class="btn btn-info w-100" onclick="gerarZPL()">
-                        <i class="bi bi-file-code"></i> Gerar Código ZPL
-                    </button>
-                    <button class="btn btn-warning w-100 mt-2" onclick="carregarDoTeste()">
-                        <i class="bi bi-download"></i> Carregar do Último Teste OK
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-7">
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-eye"></i> Preview da Etiqueta</h5>
-                </div>
-                <div class="card-body text-center" style="background:#e9ecef">
-                    <div class="etiqueta-preview" id="etiquetaPreview"></div>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="bi bi-rulers"></i> Tamanho: 100mm x 90mm | 
-                            <i class="bi bi-printer"></i> Zebra ZT411
-                        </small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card" id="cardZPL" style="display:none">
-                <div class="card-header bg-dark text-white">
-                    <h6 class="mb-0"><i class="bi bi-code-slash"></i> Código ZPL para Zebra</h6>
-                </div>
-                <div class="card-body">
-                    <div class="zpl-box" id="codigoZPL"></div>
-                    <button class="btn btn-sm btn-secondary mt-2" onclick="copiarZPL()">
-                        <i class="bi bi-clipboard"></i> Copiar ZPL
-                    </button>
-                    <button class="btn btn-sm btn-secondary mt-2" onclick="baixarZPL()">
-                        <i class="bi bi-download"></i> Baixar.ZPL
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Área Visual -->
+    <div class="preview-area">
+        <div id="etiqueta"></div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    gerarEtiqueta();
-    
-    document.querySelectorAll('input:not([readonly]), select').forEach(input => {
-        input.addEventListener('input', () => {
-            clearTimeout(window.previewTimeout);
-            window.previewTimeout = setTimeout(gerarEtiqueta, 400);
-        });
-    });
-});
+    <script>
+        let elementos = [
+            { id: 1, tipo: 'texto', valor: 'Cód: PROD-001', x: 5, y: 5, w: 90, h: 7, tamFonte: 12, negrito: true },
+            { id: 2, tipo: 'linha', valor: '', x: 5, y: 12, w: 90, h: 1, orientacao: 'horizontal', espessuraLinha: 1 },
+            { id: 3, tipo: 'texto', valor: 'Descrição: Peça Industrial Exemplo', x: 5, y: 14, w: 90, h: 7, tamFonte: 10, negrito: false },
+            { id: 4, tipo: 'texto', valor: 'Qtd: 50 | Mín: 10', x: 5, y: 22, w: 90, h: 7, tamFonte: 10, negrito: false },
+            { id: 5, tipo: 'barcode', valor: 'PROD001', x: 5, y: 30, w: 90, h: 25, tamanhoBarra: 42, distanciaTexto: -2, tamTexto: 9 }
+        ];
 
-function gerarEtiqueta(){
-    const cnpj = document.getElementById('cnpj').value;
-    const numInspetor = document.getElementById('numInspetor').value || '8';
-    const statusQualidade = document.getElementById('statusQualidade').value;
-    const codProduto = document.getElementById('codProduto').value;
-    const descProduto = document.getElementById('descProduto').value;
-    const vol = document.getElementById('vol').value;
-    const qtd = document.getElementById('qtd').value;
-    const codElgin = document.getElementById('codElgin').value;
-    const ean13 = document.getElementById('ean13').value;
-    const serie = document.getElementById('serie').value;
-    const codAdicional = document.getElementById('codAdicional').value;
-    const data = document.getElementById('data').value;
-    
-    const html = `
-        <table class="etq-table">
-            <tr>
-                <td style="width:80px" class="etq-logo">elgin</td>
-                <td colspan="2" style="text-align:center;font-size:6.5px;padding:3px">
-                    CNPJ: ${cnpj}
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="padding:2px">
-                    <div class="etq-desc">${descProduto}</div>
-                    <span class="etq-label">Código do Produto Elgin</span>
-                    <span class="etq-value">${codProduto}</span><br>
-                    <span class="etq-label">QTD.:01</span>
-                    <span class="etq-value">${qtd}</span>
-                    <span style="margin-left:15px" class="etq-label">VOL:01</span>
-                    <span class="etq-value">${vol}</span>
-                </td>
-                <td rowspan="2" style="width:75px;text-align:center;vertical-align:top;padding-top:3px">
-                    <div class="etq-selo">
-                        <div>CONTROLE DE</div>
-                        <div>QUALIDADE</div>
-                        <div class="etq-selo-num">${numInspetor}</div>
-                        <div class="etq-selo-dots">•••••••••</div>
-                        <div class="etq-selo-status">${statusQualidade}</div>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding:2px">
-                    <span class="etq-label">Código Elgin</span>
-                    <span class="etq-value">${codElgin}</span>
-                </td>
-                <td style="padding:2px">
-                    <span class="etq-label">Código EAN 13</span>
-                    <span class="etq-value">${ean13}</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" class="etq-barcode" style="padding:2px">
-                    <svg id="barcodeEAN"></svg>
-                </td>
-                <td rowspan="2" style="padding:2px;vertical-align:bottom">
-                    <div style="font-size:6px;text-align:center;margin-bottom:2px">${codAdicional}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="padding:2px">
-                    <span class="etq-label">Número de Série</span>
-                    <div class="etq-barcode" style="padding:1px">
-                        <svg id="barcodeSerie"></svg>
-                        <div style="font-size:5.5px;margin-top:1px">${serie}</div>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="etq-manaus" style="border-top:2px solid #000">
-                    PRODUZIDO NO<br>
-                    POLO INDUSTRIAL<br>
-                    DE MANAUS<br>
-                    <div style="font-size:5px;margin-top:2px">CONHEÇA A AMAZÔNIA</div>
-                </td>
-                <td colspan="2" class="etq-data" style="border-top:2px solid #000">
-                    DATA ${data}
-                </td>
-            </tr>
-        </table>
-    `;
-    
-    document.getElementById('etiquetaPreview').innerHTML = html;
-    
-    setTimeout(() => {
-        try {
-            JsBarcode("#barcodeEAN", ean13, {
-                format: "CODE128",
-                width: 0.75,
-                height: 22,
-                displayValue: false,
-                margin: 0
-            });
-            JsBarcode("#barcodeSerie", serie, {
-                format: "CODE128",
-                width: 0.75,
-                height: 22,
-                displayValue: false,
-                margin: 0
-            });
-        } catch(e) {
-            console.error('Erro barcode:', e);
+        let idContador = 6;
+
+        function mmParaPx(mm) {
+            return mm * (96 / 25.4);
         }
-    }, 100);
-}
 
-function gerarZPL(){
-    const numInspetor = document.getElementById('numInspetor').value || '8';
-    const statusQualidade = document.getElementById('statusQualidade').value;
-    const codProduto = document.getElementById('codProduto').value;
-    const descProduto = document.getElementById('descProduto').value;
-    const vol = document.getElementById('vol').value;
-    const qtd = document.getElementById('qtd').value;
-    const codElgin = document.getElementById('codElgin').value;
-    const ean13 = document.getElementById('ean13').value;
-    const serie = document.getElementById('serie').value;
-    const codAdicional = document.getElementById('codAdicional').value;
-    const data = document.getElementById('data').value;
-    
-    const zpl = `^XA
-^PW800
-^LL720
-^FO20,15^A0N,22,22^FDelgin^FS
-^FO200,15^A0N,14,14^FDCNPJ: 14.200.166/0005-90^FS
-^FO20,50^A0N,12,12^FD${descProduto}^FS
-^FO20,70^A0N,10,10^FDCODIGO DO PRODUTO ELGIN^FS
-^FO20,85^A0N,16,16^FD${codProduto}^FS
-^FO20,105^A0N,10,10^FDQTD.:01 ${qtd}^FS
-^FO150,105^A0N,10,10^FDVOL:01 ${vol}^FS
-^FO580,50^GB120,120,2^FS
-^FO640,60^GC120,120^FS
-^FO640,55^A0N,12,12^FDCONTROLE DE^FS
-^FO640,70^A0N,12,12^FDQUALIDADE^FS
-^FO640,90^A0N,40,40^FD${numInspetor}^FS
-^FO640,135^A0N,10,10^FD${statusQualidade}^FS
-^FO20,130^A0N,10,10^FDCODIGO ELGIN^FS
-^FO20,145^A0N,16,16^FD${codElgin}^FS
-^FO200,130^A0N,10,10^FDCODIGO EAN 13^FS
-^FO200,145^A0N,16,16^FD${ean13}^FS
-^FO20,170^BY1^BCN,35,Y,N,N^FD${ean13}^FS
-^FO20,215^A0N,10,10^FDNUMERO DE SERIE^FS
-^FO20,230^BY1^BCN,35,Y,N,N^FD${serie}^FS
-^FO580,200^A0N,11,11^FD${codAdicional}^FS
-^FO20,280^A0N,9,9^FDPRODUZIDO NO^FS
-^FO20,292^A0N,9,9^FDPOLO INDUSTRIAL^FS
-^FO20,304^A0N,9,9^FDDE MANAUS^FS
-^FO20,320^A0N,8,8^FDCONHECA A AMAZONIA^FS
-^FO450,295^A0N,14,14^FDDATA ${data}^FS
-^XZ`;
-    
-    document.getElementById('codigoZPL').innerText = zpl;
-    document.getElementById('cardZPL').style.display = 'block';
-    document.getElementById('cardZPL').scrollIntoView({behavior:'smooth'});
-}
-
-function copiarZPL(){
-    const zpl = document.getElementById('codigoZPL').innerText;
-    navigator.clipboard.writeText(zpl).then(() => {
-        alert('ZPL copiado! Cole no ZebraDesigner.');
-    });
-}
-
-function baixarZPL(){
-    const zpl = document.getElementById('codigoZPL').innerText;
-    if(!zpl) return alert('Gere o ZPL primeiro');
-    
-    const blob = new Blob([zpl], {type: 'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `etiqueta_EL250_${Date.now()}.zpl`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function carregarDoTeste(){
-    const testes = JSON.parse(localStorage.getItem('testes') || '[]');
-    const ultimoOK = testes.find(t => t.resultado === 'APROVADO');
-    
-    if(ultimoOK){
-        document.getElementById('serie').value = ultimoOK.serie;
-        document.getElementById('codProduto').value = ultimoOK.produtoCodigo;
-        
-        const produtos = JSON.parse(localStorage.getItem('produtos') || '[]');
-        const prod = produtos.find(p => p.codigo === ultimoOK.produtoCodigo);
-        if(prod){
-            document.getElementById('descProduto').value = prod.nome;
-            document.getElementById('codElgin').value = prod.modelo || '46EL250USC01';
+        function pxParaMm(px) {
+            return px / (96 / 25.4);
         }
-        
-        document.getElementById('data').value = new Date(ultimoOK.data).toLocaleDateString('pt-BR');
-        gerarEtiqueta();
-        alert('Dados carregados do último teste aprovado!');
-    } else {
-        alert('Nenhum teste aprovado encontrado.');
-    }
-}
-</script>
+
+        function inicializarFormulario() {
+            const container = document.getElementById('container-elementos-form');
+            container.innerHTML = '';
+
+            elementos.forEach((el) => {
+                let htmlCampos = '';
+
+                if (el.tipo === 'texto') {
+                    htmlCampos = `
+                        <div class="form-group">
+                            <label>Texto:</label>
+                            <input type="text" value="${el.valor}" oninput="atualizarDado(${el.id}, 'valor', this.value)">
+                        </div>
+                        <div class="row-inputs">
+                             <div class="form-group"><label>Fonte (px):</label><input type="number" value="${el.tamFonte}" oninput="atualizarDado(${el.id}, 'tamFonte', parseInt(this.value))"></div>
+                             <div class="form-group"><label>Negrito:</label><select onchange="atualizarDado(${el.id}, 'negrito', this.value === 'true')"><option value="true" ${el.negrito?'selected':''}>Sim</option><option value="false" ${!el.negrito?'selected':''}>Não</option></select></div>
+                        </div>
+                    `;
+                } else if (el.tipo === 'imagem') {
+                    htmlCampos = `
+                        <div class="form-group">
+                            <label>Selecionar do Computador:</label>
+                            <input type="file" accept="image/*" onchange="carregarImagemLocal(${el.id}, event)">
+                        </div>
+                        <div class="form-group">
+                            <label>Ou cole a URL da Imagem:</label>
+                            <input type="text" value="${el.valor.startsWith('data:') ? '' : el.valor}" placeholder="https://..." oninput="atualizarDado(${el.id}, 'valor', this.value)">
+                        </div>
+                    `;
+                } else if (el.tipo === 'barcode') {
+                    htmlCampos = `
+                        <div class="form-group">
+                            <label>Texto do Código de Barras:</label>
+                            <input type="text" value="${el.valor}" oninput="atualizarDado(${el.id}, 'valor', this.value)">
+                        </div>
+                        <div class="row-inputs">
+                            <div class="form-group">
+                                <label>Tam. Barras (px):</label>
+                                <input type="number" value="${el.tamanhoBarra || 42}" oninput="atualizarDado(${el.id}, 'tamanhoBarra', parseInt(this.value))">
+                            </div>
+                            <div class="form-group">
+                                <label>Distância Texto:</label>
+                                <input type="number" value="${el.distanciaTexto !== undefined ? el.distanciaTexto : -2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value))">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tam. Texto Numérico (px):</label>
+                            <input type="number" value="${el.tamTexto || 9}" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))">
+                        </div>
+                    `;
+                } else if (el.tipo === 'linha') {
+                    htmlCampos = `
+                        <div class="row-inputs">
+                            <div class="form-group">
+                                <label>Orientação:</label>
+                                <select onchange="atualizarDado(${el.id}, 'orientacao', this.value)">
+                                    <option value="horizontal" ${el.orientacao === 'horizontal' ? 'selected' : ''}>Horizontal</option>
+                                    <option value="vertical" ${el.orientacao === 'vertical' ? 'selected' : ''}>Vertical</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Espessura (mm):</label>
+                                <input type="number" step="0.5" value="${el.espessuraLinha || 1}" oninput="atualizarDado(${el.id}, 'espessuraLinha', parseFloat(this.value))">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const divBox = document.createElement('div');
+                divBox.className = 'elemento-box';
+                divBox.innerHTML = `
+                    <h4>
+                        <span>Tipo: ${el.tipo.toUpperCase()}</span>
+                        <button class="btn-remover" onclick="removerElemento(${el.id})">Remover</button>
+                    </h4>
+                    ${htmlCampos}
+                    <div class="row-inputs" style="margin-top: 5px;">
+                        <div class="form-group"><label>Largura (mm):</label><input type="number" value="${el.w.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'w', this.value)"></div>
+                        <div class="form-group"><label>Altura (mm):</label><input type="number" value="${el.h.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'h', this.value)"></div>
+                    </div>
+                `;
+                container.appendChild(divBox);
+            });
+        }
+
+        function carregarImagemLocal(id, event) {
+            const arquivo = event.target.files[0];
+            if (arquivo) {
+                const leitor = new FileReader();
+                leitor.onload = function(e) {
+                    atualizarDado(id, 'valor', e.target.result);
+                };
+                leitor.readAsDataURL(arquivo);
+            }
+        }
+
+        function adicionarElemento() {
+            let tipo = prompt("Escolha o tipo do elemento:\n- texto\n- imagem\n- barcode\n- linha", "linha");
+            if (!tipo) return;
+            tipo = tipo.toLowerCase().trim();
+
+            if(!['texto', 'imagem', 'barcode', 'linha'].includes(tipo)) {
+                alert("Tipo inválido.");
+                return;
+            }
+
+            let novoW = tipo === 'barcode' ? 80 : (tipo === 'imagem' ? 30 : (tipo === 'linha' ? 40 : 90));
+            let novoH = tipo === 'barcode' ? 25 : (tipo === 'imagem' ? 20 : (tipo === 'linha' ? 1 : 7));
+
+            elementos.push({
+                id: idContador++,
+                tipo: tipo,
+                valor: tipo === 'texto' ? 'Novo Texto' : (tipo === 'imagem' ? '' : (tipo === 'barcode' ? 'PROD123' : '')),
+                x: 5, y: 35, w: novoW, h: novoH,
+                tamFonte: 11, negrito: false,
+                tamanhoBarra: 42, distanciaTexto: -2, tamTexto: 9,
+                orientacao: 'horizontal', espessuraLinha: 1
+            });
+
+            renderizarTudo();
+        }
+
+        function removerElemento(id) {
+            elementos = elementos.filter(e => e.id !== id);
+            renderizarTudo();
+        }
+
+        function atualizarDado(id, campo, valor) {
+            const el = elementos.find(e => e.id === id);
+            if (el) {
+                el[campo] = valor;
+                renderizarEtiqueta();
+            }
+        }
+
+        function atualizarDimensoes(id, campo, valor) {
+            const el = elementos.find(e => e.id === id);
+            if (el) {
+                el[campo] = parseFloat(valor) || 0.5;
+                renderizarEtiqueta();
+            }
+        }
+
+        function centralizarElementos() {
+            let yAtual = 5;
+            elementos.forEach(el => {
+                el.x = 5;
+                el.y = yAtual;
+                yAtual += el.h + 2;
+            });
+            renderizarTudo();
+        }
+
+        function renderizarEtiqueta() {
+            const larguraMm = parseFloat(document.getElementById('inputWidth').value) || 100;
+            const alturaMm = parseFloat(document.getElementById('inputHeight').value) || 60;
+            const etiqueta = document.getElementById('etiqueta');
+
+            etiqueta.style.width = mmParaPx(larguraMm) + 'px';
+            etiqueta.style.height = mmParaPx(alturaMm) + 'px';
+
+            etiqueta.innerHTML = '';
+
+            elementos.forEach((el) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'etiqueta-item-preview';
+                itemDiv.setAttribute('data-id', el.id);
+                
+                itemDiv.style.left = mmParaPx(el.x) + 'px';
+                itemDiv.style.top = mmParaPx(el.y) + 'px';
+                itemDiv.style.width = mmParaPx(el.w) + 'px';
+                itemDiv.style.height = mmParaPx(el.h) + 'px';
+
+                if (el.tipo === 'texto') {
+                    const inner = document.createElement('div');
+                    inner.className = 'preview-text';
+                    inner.innerText = el.valor;
+                    inner.style.fontSize = (el.tamFonte || 11) + 'px';
+                    inner.style.fontWeight = el.negrito ? 'bold' : 'normal';
+                    itemDiv.appendChild(inner);
+                } 
+                else if (el.tipo === 'imagem') {
+                    if (el.valor && el.valor.trim() !== '') {
+                        const img = document.createElement('img');
+                        img.className = 'preview-img';
+                        img.src = el.valor;
+                        itemDiv.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement('div');
+                        placeholder.style.fontSize = '10px';
+                        placeholder.style.color = '#888';
+                        placeholder.innerText = 'Sem Imagem';
+                        itemDiv.appendChild(placeholder);
+                    }
+                } 
+                else if (el.tipo === 'barcode') {
+                    if (el.valor && el.valor.trim() !== '') {
+                        const bcDiv = document.createElement('div');
+                        bcDiv.className = 'preview-barcode';
+                        let textoVal = el.valor.toUpperCase();
+                        if (!textoVal.startsWith('*')) textoVal = '*' + textoVal;
+                        if (!textoVal.endsWith('*')) textoVal = textoVal + '*';
+
+                        let tamBarra = el.tamanhoBarra !== undefined ? el.tamanhoBarra : 42;
+                        let distTexto = el.distanciaTexto !== undefined ? el.distanciaTexto : -2;
+                        let tamTexto = el.tamTexto !== undefined ? el.tamTexto : 9;
+
+                        bcDiv.innerHTML = `
+                            <div class="barcode-font" style="font-size: ${tamBarra}px;">${textoVal}</div>
+                            <div class="barcode-text" style="font-size: ${tamTexto}px; margin-top: ${distTexto}px;">${el.valor.toUpperCase()}</div>
+                        `;
+                        itemDiv.appendChild(bcDiv);
+                    }
+                }
+                else if (el.tipo === 'linha') {
+                    const linhaDiv = document.createElement('div');
+                    linhaDiv.className = 'preview-linha';
+                    let espessuraPx = mmParaPx(el.espessuraLinha || 1);
+                    
+                    const linhaInterna = document.createElement('div');
+                    linhaInterna.className = 'linha-interna';
+
+                    if (el.orientacao === 'vertical') {
+                        linhaInterna.style.width = espessuraPx + 'px';
+                        linhaInterna.style.height = '100%';
+                    } else {
+                        linhaInterna.style.width = '100%';
+                        linhaInterna.style.height = espessuraPx + 'px';
+                    }
+
+                    linhaDiv.appendChild(linhaInterna);
+                    itemDiv.appendChild(linhaDiv);
+                }
+
+                etiqueta.appendChild(itemDiv);
+            });
+
+            ativarArrasto();
+        }
+
+        function ativarArrasto() {
+            interact('.etiqueta-item-preview').draggable({
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                autoScroll: true,
+                listeners: {
+                    move (event) {
+                        const target = event.target;
+                        const id = parseInt(target.getAttribute('data-id'));
+                        const elData = elementos.find(e => e.id === id);
+
+                        if (elData) {
+                            elData.x += pxParaMm(event.dx);
+                            elData.y += pxParaMm(event.dy);
+
+                            target.style.left = mmParaPx(elData.x) + 'px';
+                            target.style.top = mmParaPx(elData.y) + 'px';
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderizarTudo() {
+            inicializarFormulario();
+            renderizarEtiqueta();
+        }
+
+        window.onload = () => {
+            renderizarTudo();
+        };
+    </script>
 </body>
 </html>
