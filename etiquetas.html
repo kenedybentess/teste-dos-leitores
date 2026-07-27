@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
     <!-- Biblioteca Interact.js para Arrastar e Soltar -->
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -181,6 +182,16 @@
             pointer-events: none;
         }
 
+        .preview-ean13 {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
         .preview-barcode {
             width: 100%;
             height: 100%;
@@ -273,10 +284,11 @@
             { id: 2, tipo: 'linha', valor: '', x: 5, y: 12, w: 90, h: 1, orientacao: 'horizontal', espessuraLinha: 1 },
             { id: 3, tipo: 'texto', valor: 'Descrição: Peça Industrial Exemplo', x: 5, y: 14, w: 90, h: 7, tamFonte: 10, negrito: false },
             { id: 4, tipo: 'texto', valor: 'Qtd: 50 | Mín: 10', x: 5, y: 22, w: 90, h: 7, tamFonte: 10, negrito: false },
-            { id: 5, tipo: 'barcode', valor: 'PROD001', x: 5, y: 30, w: 90, h: 25, tamanhoBarra: 42, distanciaTexto: -2, tamTexto: 9 }
+            { id: 5, tipo: 'barcode', valor: 'PROD001', x: 5, y: 30, w: 90, h: 15, tamanhoBarra: 42, distanciaTexto: -2, tamTexto: 9 },
+            { id: 6, tipo: 'ean13', valor: '7891234567890', x: 5, y: 47, w: 90, h: 18, tamTexto: 10 }
         ];
 
-        let idContador = 6;
+        let idContador = 7;
 
         function mmParaPx(mm) {
             return mm * (96 / 25.4);
@@ -336,6 +348,18 @@
                             <input type="number" value="${el.tamTexto || 9}" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))">
                         </div>
                     `;
+                } else if (el.tipo === 'ean13') {
+                    htmlCampos = `
+                        <div class="form-group">
+                            <label style="color:#007bff;font-weight:bold">Código EAN13 (13 dígitos):</label>
+                            <input type="text" value="${el.valor}" maxlength="13" placeholder="7891234567890" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarDado(${el.id}, 'valor', this.value)">
+                            <small style="font-size:10px;color:#666">Somente números, 13 dígitos</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Tam. Texto (px):</label>
+                            <input type="number" value="${el.tamTexto || 10}" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))">
+                        </div>
+                    `;
                 } else if (el.tipo === 'linha') {
                     htmlCampos = `
                         <div class="row-inputs">
@@ -383,25 +407,25 @@
         }
 
         function adicionarElemento() {
-            let tipo = prompt("Escolha o tipo do elemento:\n- texto\n- imagem\n- barcode\n- linha", "linha");
+            let tipo = prompt("Escolha o tipo do elemento:\n- texto\n- imagem\n- barcode\n- ean13\n- linha", "ean13");
             if (!tipo) return;
             tipo = tipo.toLowerCase().trim();
 
-            if(!['texto', 'imagem', 'barcode', 'linha'].includes(tipo)) {
+            if(!['texto', 'imagem', 'barcode', 'ean13', 'linha'].includes(tipo)) {
                 alert("Tipo inválido.");
                 return;
             }
 
-            let novoW = tipo === 'barcode' ? 80 : (tipo === 'imagem' ? 30 : (tipo === 'linha' ? 40 : 90));
-            let novoH = tipo === 'barcode' ? 25 : (tipo === 'imagem' ? 20 : (tipo === 'linha' ? 1 : 7));
+            let novoW = tipo === 'barcode' ? 80 : (tipo === 'ean13' ? 70 : (tipo === 'imagem' ? 30 : (tipo === 'linha' ? 40 : 90)));
+            let novoH = tipo === 'barcode' ? 15 : (tipo === 'ean13' ? 18 : (tipo === 'imagem' ? 20 : (tipo === 'linha' ? 1 : 7)));
 
             elementos.push({
                 id: idContador++,
                 tipo: tipo,
-                valor: tipo === 'texto' ? 'Novo Texto' : (tipo === 'imagem' ? '' : (tipo === 'barcode' ? 'PROD123' : '')),
+                valor: tipo === 'texto' ? 'Novo Texto' : (tipo === 'imagem' ? '' : (tipo === 'barcode' ? 'PROD123' : (tipo === 'ean13' ? '7891234567890' : ''))),
                 x: 5, y: 35, w: novoW, h: novoH,
                 tamFonte: 11, negrito: false,
-                tamanhoBarra: 42, distanciaTexto: -2, tamTexto: 9,
+                tamanhoBarra: 42, distanciaTexto: -2, tamTexto: tipo === 'ean13' ? 10 : 9,
                 orientacao: 'horizontal', espessuraLinha: 1
             });
 
@@ -498,6 +522,39 @@
                             <div class="barcode-text" style="font-size: ${tamTexto}px; margin-top: ${distTexto}px;">${el.valor.toUpperCase()}</div>
                         `;
                         itemDiv.appendChild(bcDiv);
+                    }
+                }
+                else if (el.tipo === 'ean13') {
+                    if (el.valor && el.valor.trim() !== '') {
+                        const eanDiv = document.createElement('div');
+                        eanDiv.className = 'preview-ean13';
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+                        svg.style.width='100%';
+                        svg.style.height='100%';
+                        eanDiv.appendChild(svg);
+                        itemDiv.appendChild(eanDiv);
+                        setTimeout(()=>{
+                            try{
+                                JsBarcode(svg, el.valor, {
+                                    format: "EAN13",
+                                    displayValue: true,
+                                    fontSize: el.tamTexto || 10,
+                                    textMargin: 2,
+                                    margin: 0,
+                                    width: 1.5,
+                                    height: 40,
+                                    background: "#ffffff"
+                                });
+                            }catch(err){
+                                svg.innerHTML = `<text x="5" y="15" font-size="10" fill="red">EAN inválido</text>`;
+                            }
+                        },0);
+                    } else {
+                        const placeholder = document.createElement('div');
+                        placeholder.style.fontSize='10px';
+                        placeholder.style.color='#888';
+                        placeholder.innerText='EAN13 vazio';
+                        itemDiv.appendChild(placeholder);
                     }
                 }
                 else if (el.tipo === 'linha') {
