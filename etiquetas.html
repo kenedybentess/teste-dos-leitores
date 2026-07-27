@@ -219,8 +219,11 @@
             pointer-events: none;
         }
 
+        /* Força a impressão correta da linha usando bordas sólidas */
         .linha-interna {
-            background-color: #000;
+            background-color: #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* Regras de Impressão: Remove molduras e bordas tracejadas */
