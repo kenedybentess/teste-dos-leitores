@@ -104,11 +104,13 @@ function carregarProdutos(){
     tbody.innerHTML=produtos.length===0?'<tr><td colspan="7" class="text-center text-muted">Nenhum produto</td></tr>':
     produtos.map(p=>{
         const qtdCodigos = p.codigos ? p.codigos.length : 0;
+        const eanDisplay = p.ean13 ? `<span class="font-monospace">${p.ean13}</span>` : '<span class="text-muted">-</span>';
         return `<tr>
             <td><strong>${p.codigo}</strong></td>
             <td>${p.nome}</td>
             <td>${p.modelo}</td>
             <td><span class="badge bg-secondary">${p.tipo}</span></td>
+            <td>${eanDisplay}</td>
             <td><span class="badge bg-info">${qtdCodigos} código(s)</span></td>
             <td>
                 <button class="btn btn-sm btn-warning me-1" onclick="editarProduto('${p.id}')"><i class="bi bi-pencil"></i></button>
