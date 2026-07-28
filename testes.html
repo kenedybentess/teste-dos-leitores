@@ -112,7 +112,7 @@
 <div id="resultadoFinal" class="card mt-3 no-print" style="display:none;"></div>
 
 <div id="comprovante" style="display:none;background:white;border:2px solid #000;padding:18px;margin-top:18px;">
-<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Elgin_logo.svg/320px-Elgin_logo.svg.png" alt="elgin" style="height:30px;" onerror="this.outerHTML='<b>\'elgin</b>'"><br><small>CNPJ 14.200.166/0005-90</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
+<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;"><div><img src="logo-elgin.png" alt="elgin" style="height:30px;" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Elgin_logo.svg/320px-Elgin_logo.svg.png'"><br><small>CNPJ 14.200.166/0005-90</small></div><div style="text-align:right;"><div id="compResultado" style="font-weight:900;font-size:20px;">APROVADO</div><small id="compID"></small></div></div>
 <h6 class="text-center my-3">COMPROVANTE - EVIDÊNCIA</h6>
 <table border="1" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;"><tr><td><b>Início</b></td><td id="c_inicio"></td><td><b>Fim</b></td><td id="c_fim"></td></tr><tr><td><b>Produto (Código)</b></td><td id="c_prod"></td><td><b>Modelo</b></td><td id="c_model"></td></tr><tr><td><b>Série</b></td><td id="c_serie"></td><td><b>Operador</b></td><td id="c_oper"></td></tr><tr><td><b>Duração</b></td><td id="c_dur"></td><td><b>Hash</b></td><td id="c_hash" style="font-family:monospace;font-size:9px;"></td></tr></table>
 <table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px;"><thead><tr style="background:#eee;"><th># - Nome do Código</th><th>Esperado</th><th>Lido</th><th>Status</th><th>Hora</th></tr></thead><tbody id="c_leituras"></tbody></table>
@@ -401,14 +401,17 @@ async function finalizar(){
   preencher(log);
   atualizarContadorTotal();
   
-  // === IMPRESSÃO AUTOMÁTICA SEMPRE NA PADRÃO - CORRIGIDO ===
+  // === IMPRESSÃO AUTOMÁTICA NA PADRÃO via etiquetas.html ===
   try{
-    const etiqueta = salvarEtiquetaParaImpressao(log);
-    console.log('Finalizado, imprimindo etiqueta:', etiqueta);
-    // Chama impressão direta na padrão (sem precisar clicar)
-    setTimeout(()=>{ 
-      imprimirDiretoImpressoraPadrao(log);
-    }, 800);
+    const chk = document.getElementById('chkAutoImprimirEtiqueta');
+    const deveImprimir = chk ? chk.checked : true;
+    if(deveImprimir){
+      const etiqueta = salvarEtiquetaParaImpressao(log);
+      console.log('Finalizado, imprimindo etiqueta:', etiqueta);
+      setTimeout(()=>{ 
+        imprimirDiretoImpressoraPadrao(log);
+      }, 600);
+    }
   }catch(e){ console.error('Erro ao preparar impressão', e); }
   
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
@@ -419,7 +422,6 @@ function imprimirDiretoImpressoraPadrao(log){
   const etiqueta = salvarEtiquetaParaImpressao(log);
   if(!etiqueta){ console.error('Etiqueta vazia'); return; }
   
-  // Método 1: Tenta abrir etiquetas.html com autoPrint que já imprime sozinho
   const params = new URLSearchParams({
     autoPrint:'1',
     silent:'1',
@@ -428,61 +430,58 @@ function imprimirDiretoImpressoraPadrao(log){
     ean13: etiqueta.ean13||'',
     descricao: etiqueta.descricao||'',
     modelo: etiqueta.modelo||'',
-    operador: etiqueta.operador||''
+    operador: etiqueta.operador||'',
+    resultado: etiqueta.resultado||''
   });
   const url = 'etiquetas.html?'+params.toString();
-  
   console.log('Abrindo etiqueta para impressão padrão:', url);
   
-  // Remove iframes antigos
   document.querySelectorAll('#iframeEtiquetaAuto, #avisoPrint').forEach(el=>el.remove());
   
-  // Cria iframe visível temporariamente para garantir que print não seja bloqueado
+  // iframe oculto que chama window.print() dentro de etiquetas.html
   const iframe = document.createElement('iframe');
   iframe.id='iframeEtiquetaAuto';
   iframe.style.position='fixed';
-  iframe.style.left='0';
+  iframe.style.left='-9999px';
   iframe.style.top='0';
-  iframe.style.width='100%';
-  iframe.style.height='400px';
-  iframe.style.border='3px solid #198754';
+  iframe.style.width='100mm';
+  iframe.style.height='75mm';
+  iframe.style.border='0';
   iframe.style.background='white';
   iframe.style.zIndex='9998';
   iframe.src=url;
   document.body.appendChild(iframe);
   
-  // Aviso
+  // Aviso visual com logo
   const aviso=document.createElement('div');
   aviso.id='avisoPrint';
   aviso.style.position='fixed';
   aviso.style.top='20px';
   aviso.style.right='20px';
-  aviso.style.background='linear-gradient(135deg,#198754,#20c997)';
+  aviso.style.background='linear-gradient(135deg,#0d6efd,#1e88e5)';
   aviso.style.color='white';
   aviso.style.padding='16px 22px';
   aviso.style.borderRadius='12px';
   aviso.style.zIndex='10000';
   aviso.style.fontWeight='bold';
   aviso.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';
-  aviso.innerHTML=`🖨️ IMPRIMINDO NA PADRÃO<br><small style="font-weight:normal">S/N: ${etiqueta.serie}<br>${etiqueta.codigo} - ${etiqueta.descricao||''}</small><br><button onclick="document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove();" style="margin-top:8px;background:white;color:#198754;border:none;padding:4px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Fechar</button>`;
+  aviso.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><img src="logo-elgin.png" style="height:22px;background:white;padding:2px;border-radius:4px" onerror="this.style.display='none'"><span>🖨️ IMPRIMINDO NA PADRÃO</span></div><small style="font-weight:normal">S/N: ${etiqueta.serie}<br>${etiqueta.codigo} - ${etiqueta.descricao||''}</small><br><div style="margin-top:8px;display:flex;gap:6px"><button onclick="window.open('${url}','_blank')" style="background:white;color:#0d6efd;border:none;padding:5px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Abrir Etiqueta</button><button onclick="document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove();" style="background:rgba(255,255,255,0.2);color:white;border:1px solid white;padding:4px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Fechar</button></div>`;
   document.body.appendChild(aviso);
   
-  // Método 2: Após 2 segundos, tenta também impressão direta via window.open como fallback
+  // Fallback: abre janela se iframe não disparar impressão em 2.5s
   setTimeout(()=>{
     try{
-      const win = window.open(url, '_blank', 'width=400,height=300');
-      if(win){
-        // A janela aberta já tem autoPrint=1 e vai chamar window.print() sozinha
-        console.log('Janela de impressão aberta, ela vai imprimir sozinha');
-      }
-    }catch(e){ console.log('Popup bloqueado, usando iframe'); }
-  }, 500);
+      // Se usuário preferir janela, ele clica no botão. Mantemos window.open opcional apenas se popup permitido
+      const win = window.open(url, '_blank', 'width=450,height=350');
+      if(win){ console.log('Janela etiqueta aberta para impressão padrão'); }
+    }catch(e){ console.log('Popup bloqueado, usando apenas iframe'); }
+  }, 1200);
   
-  // Auto remove após 20s
   setTimeout(()=>{ 
     document.getElementById('iframeEtiquetaAuto')?.remove(); 
-    document.getElementById('avisoPrint')?.remove(); 
-  }, 20000);
+    // mantém aviso por 15s
+    setTimeout(()=>document.getElementById('avisoPrint')?.remove(), 15000);
+  }, 5000);
 }
 
 function imprimirEtiquetaAuto(log){ imprimirDiretoImpressoraPadrao(log); }
