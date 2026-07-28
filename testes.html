@@ -325,16 +325,7 @@ function fecharModalImpressaoEtiqueta(){
 }
 
 function abrirEtiquetaParaImpressao(){
-  const etiqueta = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||'{}');
-  const params = new URLSearchParams({
-    auto: '1',
-    codigo: etiqueta.codigo||'',
-    serie: etiqueta.serie||'',
-    ean13: etiqueta.ean13||'',
-    descricao: etiqueta.descricao||'',
-    modelo: etiqueta.modelo||''
-  });
-  window.open('etiquetas.html?'+params.toString(), '_blank');
+  imprimirEtiquetaAuto(window._ultimoLog);
   fecharModalImpressaoEtiqueta();
 }
 
@@ -412,12 +403,60 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Etiqueta será impressa automaticamente...</span></div></div>`;
   preencher(log);
   atualizarContadorTotal();
+  
+  // === VINCULO ETIQUETA + AUTO IMPRESSÃO ===
+  try{
+    salvarEtiquetaParaImpressao(log);
+    const chkAuto = document.getElementById('chkAutoImprimirEtiqueta');
+    const deveImprimir = (chkAuto && chkAuto.checked);
+    if(deveImprimir){
+      // Imprime direto sem modal, abre etiqueta que já dá print automático
+      setTimeout(()=>{ imprimirEtiquetaAuto(log); }, 800);
+    } else {
+      // Só mostra modal
+      setTimeout(()=>{ solicitarImpressaoEtiqueta(log); }, 500);
+    }
+  }catch(e){ console.log('Erro auto print etiqueta', e); }
+  
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
   if(document.getElementById('chkAutoVolta').checked){ iniciarContagemRegressivaParaSerie(); }
 }
+
+function imprimirEtiquetaAuto(log){
+  const etiqueta = salvarEtiquetaParaImpressao(log);
+  const params = new URLSearchParams({
+    autoPrint:'1', 
+    codigo: etiqueta.codigo||'', 
+    serie: etiqueta.serie||'', 
+    ean13: etiqueta.ean13||'', 
+    descricao: etiqueta.descricao||'', 
+    modelo: etiqueta.modelo||'',
+    operador: etiqueta.operador||'',
+    resultado: etiqueta.resultado||''
+  });
+  const url = 'etiquetas.html?'+params.toString();
+  console.log('Abrindo etiqueta para impressão automática:', url);
+  const win = window.open(url, '_blank', 'width=900,height=700');
+  if(!win){
+    const iframe = document.createElement('iframe');
+    iframe.style.position='fixed';
+    iframe.style.right='0'; iframe.style.bottom='0';
+    iframe.style.width='400px'; iframe.style.height='300px';
+    iframe.style.border='2px solid #198754';
+    iframe.src=url;
+    document.body.appendChild(iframe);
+    const aviso = document.createElement('div');
+    aviso.style.position='fixed'; aviso.style.right='10px'; aviso.style.bottom='320px';
+    aviso.style.background='#198754'; aviso.style.color='white'; aviso.style.padding='8px 12px'; aviso.style.borderRadius='8px'; aviso.style.zIndex='9999';
+    aviso.innerHTML='🖨️ Imprimindo etiqueta...<br><small>Se bloqueou popup, use o iframe abaixo</small>';
+    document.body.appendChild(aviso);
+    setTimeout(()=>{ iframe.remove(); aviso.remove(); }, 15000);
+  }
+}
+
 function gerarNomeArquivo(log, ext){return `${log.log_id}_${sanitizeNome(log.produto)}_${sanitizeNome(log.modelo)}_${sanitizeNome(log.serie)}_${sanitizeNome(log.resultado)}.${ext}`;}
 function preencher(log){
   document.getElementById('comprovante').style.display='block';document.getElementById('areaLogTerminal').style.display='block';
