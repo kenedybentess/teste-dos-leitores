@@ -324,10 +324,7 @@ function fecharModalImpressaoEtiqueta(){
   if(m) m.remove();
 }
 
-function abrirEtiquetaParaImpressao(){
-  imprimirEtiquetaAuto(window._ultimoLog);
-  fecharModalImpressaoEtiqueta();
-}
+function abrirEtiquetaParaImpressao(){ imprimirDiretoImpressoraPadrao(window._ultimoLog); fecharModalImpressaoEtiqueta(); }
 
 function salvarConfigFixa(){
   const cfg={produto:document.getElementById('produtoSel').value,operador:document.getElementById('operadorSel').value,modelo:document.getElementById('modeloSel').value};
@@ -403,58 +400,83 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Etiqueta será impressa automaticamente...</span></div></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Enviando etiqueta para impressora padrão...</span></div></div>`;
   preencher(log);
   atualizarContadorTotal();
   
-  // === VINCULO ETIQUETA + AUTO IMPRESSÃO ===
+  // === AUTO IMPRIMIR NA IMPRESSORA PADRÃO SEM CLICAR EM BOTÃO ===
   try{
     salvarEtiquetaParaImpressao(log);
     const chkAuto = document.getElementById('chkAutoImprimirEtiqueta');
-    const deveImprimir = (chkAuto && chkAuto.checked);
+    const deveImprimir = !chkAuto || chkAuto.checked; // se não existir checkbox, imprime mesmo assim
     if(deveImprimir){
-      // Imprime direto sem modal, abre etiqueta que já dá print automático
-      setTimeout(()=>{ imprimirEtiquetaAuto(log); }, 800);
-    } else {
-      // Só mostra modal
-      setTimeout(()=>{ solicitarImpressaoEtiqueta(log); }, 500);
+      setTimeout(()=>{ imprimirDiretoImpressoraPadrao(log); }, 700);
     }
-  }catch(e){ console.log('Erro auto print etiqueta', e); }
+  }catch(e){ console.log('Erro auto print', e); }
   
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
   if(document.getElementById('chkAutoVolta').checked){ iniciarContagemRegressivaParaSerie(); }
 }
 
-function imprimirEtiquetaAuto(log){
+function imprimirDiretoImpressoraPadrao(log){
   const etiqueta = salvarEtiquetaParaImpressao(log);
+  console.log('Imprimindo direto na impressora padrão:', etiqueta);
+  
+  // Cria iframe oculto que carrega etiquetas.html com autoPrint=1 e silent=1
+  // Esse iframe vai chamar window.print() sozinho, sem precisar clicar
   const params = new URLSearchParams({
-    autoPrint:'1', 
-    codigo: etiqueta.codigo||'', 
-    serie: etiqueta.serie||'', 
-    ean13: etiqueta.ean13||'', 
-    descricao: etiqueta.descricao||'', 
+    autoPrint:'1',
+    silent:'1',
+    codigo: etiqueta.codigo||'',
+    serie: etiqueta.serie||'',
+    ean13: etiqueta.ean13||'',
+    descricao: etiqueta.descricao||'',
     modelo: etiqueta.modelo||'',
-    operador: etiqueta.operador||'',
-    resultado: etiqueta.resultado||''
+    operador: etiqueta.operador||''
   });
   const url = 'etiquetas.html?'+params.toString();
-  console.log('Abrindo etiqueta para impressão automática:', url);
-  const win = window.open(url, '_blank', 'width=900,height=700');
-  if(!win){
-    const iframe = document.createElement('iframe');
-    iframe.style.position='fixed';
-    iframe.style.right='0'; iframe.style.bottom='0';
-    iframe.style.width='400px'; iframe.style.height='300px';
-    iframe.style.border='2px solid #198754';
-    iframe.src=url;
-    document.body.appendChild(iframe);
-    const aviso = document.createElement('div');
-    aviso.style.position='fixed'; aviso.style.right='10px'; aviso.style.bottom='320px';
-    aviso.style.background='#198754'; aviso.style.color='white'; aviso.style.padding='8px 12px'; aviso.style.borderRadius='8px'; aviso.style.zIndex='9999';
-    aviso.innerHTML='🖨️ Imprimindo etiqueta...<br><small>Se bloqueou popup, use o iframe abaixo</small>';
-    document.body.appendChild(aviso);
-    setTimeout(()=>{ iframe.remove(); aviso.remove(); }, 15000);
-  }
+  
+  // Remove iframes antigos
+  document.querySelectorAll('#iframeEtiquetaAuto').forEach(el=>el.remove());
+  document.querySelectorAll('#avisoPrint').forEach(el=>el.remove());
+  
+  const iframe = document.createElement('iframe');
+  iframe.id='iframeEtiquetaAuto';
+  iframe.style.position='fixed';
+  iframe.style.left='-9999px';
+  iframe.style.top='-9999px';
+  iframe.style.width='0';
+  iframe.style.height='0';
+  iframe.style.border='none';
+  iframe.src=url;
+  document.body.appendChild(iframe);
+  
+  // Aviso visual
+  const aviso = document.createElement('div');
+  aviso.id='avisoPrint';
+  aviso.style.position='fixed';
+  aviso.style.top='20px';
+  aviso.style.right='20px';
+  aviso.style.background='linear-gradient(135deg,#198754,#20c997)';
+  aviso.style.color='white';
+  aviso.style.padding='14px 20px';
+  aviso.style.borderRadius='12px';
+  aviso.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';
+  aviso.style.zIndex='10000';
+  aviso.style.fontWeight='bold';
+  aviso.innerHTML=`🖨️ Imprimindo etiqueta na impressora padrão...<br><small style="font-weight:normal">S/N: ${etiqueta.serie} | ${etiqueta.codigo}</small>`;
+  document.body.appendChild(aviso);
+  
+  setTimeout(()=>{ 
+    const el1=document.getElementById('iframeEtiquetaAuto');
+    const el2=document.getElementById('avisoPrint');
+    if(el1) el1.remove(); 
+    if(el2) el2.remove();
+  }, 12000);
+}
+
+function imprimirEtiquetaAuto(log){
+  imprimirDiretoImpressoraPadrao(log);
 }
 
 function gerarNomeArquivo(log, ext){return `${log.log_id}_${sanitizeNome(log.produto)}_${sanitizeNome(log.modelo)}_${sanitizeNome(log.serie)}_${sanitizeNome(log.resultado)}.${ext}`;}
