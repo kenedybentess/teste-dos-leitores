@@ -167,7 +167,7 @@ let elementos=[
     // 4 - Linha separadora
     {id:4, tipo:'linha', valor:'', x:5, y:31, w:90, h:0.8, orientacao:'horizontal', espessuraLinha:0.8},
     // 5 - DESCRIÇÃO do produto (REQUISITO)
-    {id:5, tipo:'texto', campo:'descricao', valor:'Descrição: Leitor Elgin EL250', x:5, y:33, w:90, h:7, tamFonte:10, negrito:false},
+    {id:5, tipo:'texto', campo:'descricao', valor:'Leitor Elgin EL250', x:5, y:33, w:90, h:7, tamFonte:10, negrito:false},
     // 6 - NÚMERO DE SÉRIE (REQUISITO)
     {id:6, tipo:'texto', campo:'serie', valor:'S/N: SN12345678', x:5, y:41, w:90, h:9, tamFonte:12, negrito:true},
     // 7 - EAN13 barcode com informações do EAN13 (REQUISITO)
@@ -317,7 +317,7 @@ function carregarDaEtiquetaTeste(){
                 } else if(el.campo==='ean13'){
                     el.valor = dados.ean13||el.valor;
                 } else if(el.campo==='descricao'){
-                    el.valor = el.tipo==='texto' ? `Descrição: ${dados.descricao||dados.codigo}` : (dados.descricao||dados.codigo);
+                    el.valor = dados.descricao||dados.codigo;
                 } else if(el.campo==='serie'){
                     el.valor = el.tipo==='texto' ? `S/N: ${dados.serie}` : dados.serie;
                 }
