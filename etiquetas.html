@@ -333,28 +333,39 @@ function carregarDaEtiquetaTeste(){
                 banner.style.display='block';
                 bannerTexto.innerText = `${dados.codigo||''} - S/N: ${dados.serie||''}`;
                 if(isAutoPrint){
-                    // AUTO IMPRIMIR após carregar - espera imagens/logo
+                    // Esconde sidebar/menu quando é autoPrint para impressão limpa
+                    document.body.style.background='#fff';
+                    const sidebar = document.querySelector('.sidebar');
+                    if(sidebar) sidebar.style.display='none';
+                    const menu = document.querySelector('.menu-suspenso');
+                    if(menu) menu.style.display='none';
+                    // AUTO IMPRIMIR após carregar - espera imagens/logo e JsBarcode
                     const esperarImgs = ()=>{
                         const imgs = document.querySelectorAll('#etiqueta img');
                         if(imgs.length===0) return Promise.resolve();
                         return Promise.all(Array.from(imgs).map(img=>{
                             if(img.complete) return Promise.resolve();
-                            return new Promise(res=>{ img.onload=res; img.onerror=res; setTimeout(res,1500); });
+                            return new Promise(res=>{ img.onload=res; img.onerror=res; setTimeout(res,1200); });
                         }));
                     };
-                    esperarImgs().then(()=> setTimeout(()=>{ window.print(); }, 600));
-                    // Tenta também fechar após imprimir se for popup
-                    setTimeout(()=>{ 
-                        if(window.opener || params.get('silent')==='1'){
-                            // não fecha automaticamente para não perder, deixa usuário
-                        }
-                    }, 3000);
+                    const fazerPrint = ()=>{
+                        esperarImgs().then(()=>{
+                            setTimeout(()=>{
+                                try{ window.focus(); }catch{}
+                                window.print();
+                                // avisa parent que imprimiu
+                                try{ window.parent.postMessage({tipo:'etiqueta_impressa', serie: dados.serie}, '*'); }catch{}
+                            }, 800);
+                        });
+                    };
+                    // tenta 2 vezes
+                    setTimeout(fazerPrint, 700);
+                    setTimeout(fazerPrint, 2000);
                 }
             }
         }
 
         renderizarTudo();
-        autoSalvar();
         return true;
     }catch(e){ console.log('Erro carregar etiqueta teste', e); return false; }
 }
@@ -381,15 +392,7 @@ function carregarEstadoEtiqueta(alertar=false){
     }catch(e){ return false; }
 }
 let autoSaveTimeout=null;
-function autoSalvar(){ clearTimeout(autoSaveTimeout); autoSaveTimeout=setTimeout(()=>{ 
-    try{
-        const est={elementos,idContador,dadosEtiqueta,largura:document.getElementById('inputWidth').value,altura:document.getElementById('inputHeight').value,data:new Date().toISOString(), versao:'2.1-last-config'};
-        localStorage.setItem(STORAGE_KEY,JSON.stringify(est));
-        localStorage.setItem('etiqueta_config_arquivo', JSON.stringify(est)); // compat
-        document.getElementById('statusSave').innerText='✅ Última config salva '+new Date().toLocaleTimeString('pt-BR');
-        console.log('Auto-salvo etiqueta última config');
-    }catch(e){}
-},400); }
+function autoSalvar(){ clearTimeout(autoSaveTimeout); autoSaveTimeout=setTimeout(()=>{ const est={elementos,idContador,dadosEtiqueta,largura:document.getElementById('inputWidth').value,altura:document.getElementById('inputHeight').value,data:new Date().toISOString()}; localStorage.setItem(STORAGE_KEY,JSON.stringify(est)); document.getElementById('statusSave').innerText='Auto-salvo '+new Date().toLocaleTimeString('pt-BR'); },1000); }
 
 function abrirModalAdd(){ document.getElementById('modalAddElemento').classList.add('ativo'); }
 function fecharModalAdd(){ document.getElementById('modalAddElemento').classList.remove('ativo'); }
@@ -623,31 +626,26 @@ function carregarDaRede(){
 }
 
 window.onload=()=>{
-    // 1) Tenta restaurar ULTIMA CONFIGURAÇÃO salva (layout, posições, tamanhos)
+    // 1) Restaura ULTIMA configuração salva se existir
     try{
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('etiqueta_config_arquivo');
+        const raw = localStorage.getItem(STORAGE_KEY);
         if(raw){
             const est = JSON.parse(raw);
-            if(est.elementos && Array.isArray(est.elementos) && est.elementos.length>0){
+            if(est.elementos && est.elementos.length>0){
                 elementos = est.elementos;
-                idContador = est.idContador || (Math.max(...elementos.map(e=>e.id))+1) || 10;
+                idContador = est.idContador || (Math.max(...elementos.map(e=>e.id))+1);
                 if(est.dadosEtiqueta) dadosEtiqueta = {...dadosEtiqueta, ...est.dadosEtiqueta};
                 if(est.largura) document.getElementById('inputWidth').value = est.largura;
                 if(est.altura) document.getElementById('inputHeight').value = est.altura;
-                console.log('Etiqueta: última configuração restaurada', elementos.length, 'elementos');
             }
         }
-        // garante logo
         garantirLogoElgin();
-    }catch(e){ console.log('Sem config anterior', e); }
-
+    }catch(e){}
     carregarProdutosSelect(); carregarSeriesSelect();
-    // 2) Depois aplica dados do teste atual (serie, codigo, ean) SEM apagar layout
     carregarDaEtiquetaTeste();
     renderizarTudo();
-    
-    // Marca como salva
-    setTimeout(()=>autoSalvar(), 500);
+    // salva para próxima
+    setTimeout(()=>{ try{ autoSalvar(); }catch{} }, 600);
 };
 </script>
 </body>
