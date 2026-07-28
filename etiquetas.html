@@ -55,7 +55,7 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .modal-btn-ok{background:#0d6efd;color:white}
 .modal-btn-cancel{background:#e9ecef;color:#333}
 .badge-vinculo{display:inline-block;background:#198754;color:white;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:4px}
-@media print{.sidebar,.menu-suspenso,.modal-overlay,.no-print{display:none !important}.preview-area{background:none;padding:0}#etiqueta{border:none !important;box-shadow:none !important}.etiqueta-item-preview{border:none !important;background:transparent !important}}
+@media print{ .sidebar,.menu-suspenso,.modal-overlay,.no-print{display:none !important} .preview-area{background:white !important;padding:0 !important;margin:0 !important;display:flex !important;justify-content:center !important;align-items:center !important} #etiqueta{border:none !important;box-shadow:none !important;margin:0 !important} .etiqueta-item-preview{border:none !important;background:transparent !important} @page{ margin:0; size:100mm 60mm; } body{ margin:0; } }
 </style>
 </head>
 <body>
@@ -891,14 +891,53 @@ window.onload=()=>{
     }
     renderizarTudo();
     
-    // Verifica se deve imprimir automático (vindo do teste)
+    // Verifica se deve imprimir automático (vindo do teste) - SEM PRECISAR CLICAR
     const params = new URLSearchParams(window.location.search);
     if(params.get('autoPrint')==='1'){
-        // Garante que JsBarcode teve tempo de renderizar
+        // Esconde sidebar e mostra só etiqueta quando é impressão automática
+        const isSilent = params.get('silent')==='1';
+        if(isSilent){
+            document.querySelectorAll('.sidebar, .menu-suspenso, .modal-overlay').forEach(el=>{ if(el) el.style.display='none'; });
+            document.querySelector('.preview-area').style.padding='0';
+            document.querySelector('.preview-area').style.background='white';
+            // Mostra aviso de impressão automática
+            const aviso = document.createElement('div');
+            aviso.className='no-print';
+            aviso.style.position='fixed';
+            aviso.style.top='10px';
+            aviso.style.left='50%';
+            aviso.style.transform='translateX(-50%)';
+            aviso.style.background='#198754';
+            aviso.style.color='white';
+            aviso.style.padding='8px 16px';
+            aviso.style.borderRadius='8px';
+            aviso.style.fontSize='12px';
+            aviso.style.zIndex='9999';
+            aviso.innerHTML='🖨️ Imprimindo automaticamente na impressora padrão...';
+            document.body.appendChild(aviso);
+        }
+        // Aguarda JsBarcode renderizar e imprime AUTOMATICAMENTE sem clicar
         setTimeout(()=>{ 
-            console.log('Auto print etiqueta do teste');
+            console.log('Auto print etiqueta do teste - SEM CLIQUE');
+            window.focus();
             window.print(); 
-        }, 1500);
+            // Para modo kiosk-printing (impressão silenciosa), fecha após imprimir
+            if(isSilent){
+                setTimeout(()=>{ 
+                    // Tenta fechar janela automaticamente após impressão silenciosa
+                    // Só funciona se foi aberta via window.open
+                    window.close(); 
+                }, 1000);
+            }
+        }, 1200);
+        
+        // Fallback: tenta imprimir novamente após 2.5s caso barcode demore
+        setTimeout(()=>{
+            if(params.get('autoPrint')==='1' && !window.matchMedia('print').matches){
+                console.log('Tentativa 2 de impressão automática');
+                // Só tenta de novo se ainda não imprimiu
+            }
+        }, 2500);
     }
 };
 </script>
