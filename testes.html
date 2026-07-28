@@ -438,19 +438,33 @@ function imprimirDiretoImpressoraPadrao(log){
   
   document.querySelectorAll('#iframeEtiquetaAuto, #avisoPrint').forEach(el=>el.remove());
   
-  // iframe oculto que chama window.print() dentro de etiquetas.html
+  // iframe VISÍVEL pequeno no topo - necessário para Chrome permitir window.print()
   const iframe = document.createElement('iframe');
   iframe.id='iframeEtiquetaAuto';
   iframe.style.position='fixed';
-  iframe.style.left='-9999px';
-  iframe.style.top='0';
-  iframe.style.width='100mm';
-  iframe.style.height='75mm';
-  iframe.style.border='0';
+  iframe.style.left='10px';
+  iframe.style.top='10px';
+  iframe.style.width='110mm';
+  iframe.style.height='80mm';
+  iframe.style.border='3px solid #198754';
   iframe.style.background='white';
-  iframe.style.zIndex='9998';
+  iframe.style.zIndex='9997';
+  iframe.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';
   iframe.src=url;
   document.body.appendChild(iframe);
+  
+  // escuta confirmação de impressão do iframe
+  window.addEventListener('message', function handler(e){
+    if(e.data && e.data.tipo==='etiqueta_impressa'){
+      console.log('Etiqueta impressa confirmada', e.data.serie);
+      // auto remove após 6s da confirmação
+      setTimeout(()=>{
+        document.getElementById('iframeEtiquetaAuto')?.remove();
+        document.getElementById('avisoPrint')?.remove();
+      }, 6000);
+      window.removeEventListener('message', handler);
+    }
+  });
   
   // Aviso visual com logo
   const aviso=document.createElement('div');
@@ -468,20 +482,15 @@ function imprimirDiretoImpressoraPadrao(log){
   aviso.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><img src="logo-elgin.png" style="height:22px;background:white;padding:2px;border-radius:4px" onerror="this.style.display='none'"><span>🖨️ IMPRIMINDO NA PADRÃO</span></div><small style="font-weight:normal">S/N: ${etiqueta.serie}<br>${etiqueta.codigo} - ${etiqueta.descricao||''}</small><br><div style="margin-top:8px;display:flex;gap:6px"><button onclick="window.open('${url}','_blank')" style="background:white;color:#0d6efd;border:none;padding:5px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Abrir Etiqueta</button><button onclick="document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove();" style="background:rgba(255,255,255,0.2);color:white;border:1px solid white;padding:4px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Fechar</button></div>`;
   document.body.appendChild(aviso);
   
-  // Fallback: abre janela se iframe não disparar impressão em 2.5s
-  setTimeout(()=>{
-    try{
-      // Se usuário preferir janela, ele clica no botão. Mantemos window.open opcional apenas se popup permitido
-      const win = window.open(url, '_blank', 'width=450,height=350');
-      if(win){ console.log('Janela etiqueta aberta para impressão padrão'); }
-    }catch(e){ console.log('Popup bloqueado, usando apenas iframe'); }
-  }, 1200);
-  
+  // NÃO abre window.open automático (bloqueado por popup blocker). Usuário tem botão "Abrir Etiqueta"
+  // Auto remove iframe após 25s se não confirmar impressão
   setTimeout(()=>{ 
-    document.getElementById('iframeEtiquetaAuto')?.remove(); 
-    // mantém aviso por 15s
-    setTimeout(()=>document.getElementById('avisoPrint')?.remove(), 15000);
-  }, 5000);
+    const still = document.getElementById('iframeEtiquetaAuto');
+    if(still){
+      console.log('Iframe ainda aberto, aguardando ação manual');
+      // não remove, deixa botão Fechar
+    }
+  }, 25000);
 }
 
 function imprimirEtiquetaAuto(log){ imprimirDiretoImpressoraPadrao(log); }
