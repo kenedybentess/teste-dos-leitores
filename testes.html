@@ -167,11 +167,14 @@ async function inicializarDadosCompartilhados(){
     }
   }catch(e){}
 
-  // Fallback localStorage
+  // Fallback localStorage + migração ean13
   let produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
+  // migra produtos antigos sem ean13
+  produtos.forEach(p=>{ if(!p.ean13) p.ean13='7890000000000'; });
+  if(produtos.length>0) localStorage.setItem('produtos', JSON.stringify(produtos));
   if(produtos.length===0){
     produtos=[
-      {id:'1', codigo:'46EL250USC01', nome:'LEITOR COD BARRAS 1D 2D ELGIN BEMA EL350', modelo:'46EL250USC01', tipo:'EL250', codigos:[
+      {id:'1', codigo:'46EL250USC01', nome:'LEITOR COD BARRAS 1D 2D ELGIN BEMA EL350', ean13:'7891234567895', modelo:'46EL250USC01', tipo:'EL250', codigos:[
         {ordem:1,nome:'QR Code - Etiqueta Produto',valorEsperado:'6922711051772',icone:'qr-code-scan'},
         {ordem:2,nome:'Código 1D - Caixa 1',valorEsperado:'2112345678917',icone:'upc'},
         {ordem:3,nome:'Código 1D - Caixa 2',valorEsperado:'6901028075763',icone:'upc-scan'},
@@ -259,12 +262,18 @@ function salvarEtiquetaParaImpressao(log){
   try{
     const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
     const prod=produtos.find(p=>p.codigo===log.produto) || {};
+    // busca EAN13: do produto, ou do código esperado que parece EAN13 (13 dígitos)
+    let ean13Final = prod.ean13 || '';
+    if(!ean13Final){
+      const leituraEAN = Object.values(log.leituras||{}).find(l=> l.codigo && /^\d{13}$/.test(l.codigo));
+      if(leituraEAN) ean13Final = leituraEAN.codigo;
+    }
     const etiquetaParaImpressao = {
-      codigo: log.produto,
-      descricao: prod.nome || log.produto,
+      codigo: log.produto, // vai para o BARCODE Code128
+      descricao: prod.nome || prod.descricao || log.produto, // vai para texto descrição
       modelo: log.modelo,
-      ean13: prod.ean13 || '',
-      serie: log.serie,
+      ean13: ean13Final, // vai para o EAN13 barcode
+      serie: log.serie, // número de série
       operador: log.operador,
       resultado: log.resultado,
       data: log.fim_br,
