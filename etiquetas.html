@@ -158,14 +158,23 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 <script>
 let dadosEtiqueta={codigo:'EL250-01', descricao:'Leitor Elgin EL250', ean13:'7891234567895', serie:'SN12345678'};
 let elementos=[
-    {id:1, tipo:'texto', campo:'codigo', valor:'Cód: EL250-01', x:5, y:3, w:90, h:6, tamFonte:11, negrito:true},
-    {id:2, tipo:'barcode', campo:'codigo', valor:'EL250-01', x:5, y:10, w:90, h:16, tamanhoBarra:36, tamTexto:9, distanciaTexto:-2},
-    {id:3, tipo:'linha', valor:'', x:5, y:27, w:90, h:0.8, orientacao:'horizontal', espessuraLinha:0.8},
-    {id:4, tipo:'texto', campo:'descricao', valor:'Descrição: Leitor Elgin EL250', x:5, y:29, w:90, h:6, tamFonte:9, negrito:false},
-    {id:5, tipo:'texto', campo:'serie', valor:'S/N: SN12345678', x:5, y:36, w:90, h:8, tamFonte:11, negrito:true},
-    {id:6, tipo:'ean13', campo:'ean13', valor:'7891234567895', x:5, y:46, w:90, h:22, tamTexto:9, eanEspaco:2, eanLargura:1.5}
+    {id:1, tipo:'imagem', valor:'logo-elgin.png', x:2, y:1, w:28, h:10},
+    {id:2, tipo:'texto', campo:'codigo', valor:'Cód: EL250-01', x:35, y:2, w:60, h:6, tamFonte:11, negrito:true},
+    {id:3, tipo:'barcode', campo:'codigo', valor:'EL250-01', x:5, y:12, w:90, h:16, tamanhoBarra:36, tamTexto:9, distanciaTexto:-2},
+    {id:4, tipo:'linha', valor:'', x:5, y:29, w:90, h:0.8, orientacao:'horizontal', espessuraLinha:0.8},
+    {id:5, tipo:'texto', campo:'descricao', valor:'Descrição: Leitor Elgin EL250', x:5, y:31, w:90, h:6, tamFonte:9, negrito:false},
+    {id:6, tipo:'texto', campo:'serie', valor:'S/N: SN12345678', x:5, y:38, w:90, h:8, tamFonte:11, negrito:true},
+    {id:7, tipo:'ean13', campo:'ean13', valor:'7891234567895', x:5, y:48, w:90, h:22, tamTexto:9, eanEspaco:2, eanLargura:1.5}
 ];
-let idContador=7;
+let idContador=8;
+
+function garantirLogoElgin(){
+    const temLogo = elementos.some(e=> e.tipo==='imagem' && (e.valor.includes('elgin') || e.valor.includes('logo')));
+    if(!temLogo){
+        elementos.unshift({id:idContador++, tipo:'imagem', valor:'logo-elgin.png', x:2, y:1, w:28, h:10});
+    }
+}
+
 function mmParaPx(mm){return mm*(96/25.4);} function pxParaMm(px){return px/(96/25.4);}
 const STORAGE_KEY='etiqueta_estado_v2';
 
@@ -267,6 +276,7 @@ function aoSelecionarProduto(prodId){
 function aoSelecionarSerie(serie){ if(!serie) return; document.getElementById('inputSerie').value=serie; vincularTodos('serie', serie); }
 
 function carregarDaEtiquetaTeste(){
+    try{ garantirLogoElgin(); }catch{}
     try{
         let dados = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||'null');
         if(!dados) dados = JSON.parse(localStorage.getItem('etiqueta_auto')||'null');
@@ -323,8 +333,22 @@ function carregarDaEtiquetaTeste(){
                 banner.style.display='block';
                 bannerTexto.innerText = `${dados.codigo||''} - S/N: ${dados.serie||''}`;
                 if(isAutoPrint){
-                    // AUTO IMPRIMIR após carregar
-                    setTimeout(()=>{ window.print(); }, 1200);
+                    // AUTO IMPRIMIR após carregar - espera imagens/logo
+                    const esperarImgs = ()=>{
+                        const imgs = document.querySelectorAll('#etiqueta img');
+                        if(imgs.length===0) return Promise.resolve();
+                        return Promise.all(Array.from(imgs).map(img=>{
+                            if(img.complete) return Promise.resolve();
+                            return new Promise(res=>{ img.onload=res; img.onerror=res; setTimeout(res,1500); });
+                        }));
+                    };
+                    esperarImgs().then(()=> setTimeout(()=>{ window.print(); }, 600));
+                    // Tenta também fechar após imprimir se for popup
+                    setTimeout(()=>{ 
+                        if(window.opener || params.get('silent')==='1'){
+                            // não fecha automaticamente para não perder, deixa usuário
+                        }
+                    }, 3000);
                 }
             }
         }
