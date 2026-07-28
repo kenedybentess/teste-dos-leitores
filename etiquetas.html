@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Etiquetas - Posicionamento Livre</title>
+<title>Gerador de Etiquetas - Menu Suspenso</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -15,15 +15,18 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .form-group input,.form-group select{width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px}
 .row-inputs{display:flex;gap:6px} .row-inputs .form-group{flex:1}
 .dados-box{background:linear-gradient(135deg,#e7f1ff,#d0e2ff);border:2px solid #0d6efd;border-radius:8px;padding:10px;margin-bottom:12px}
+.vinculo-aviso{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:6px;margin-bottom:10px;font-size:10px;color:#856404}
 .elemento-box{background:#f9f9f9;border:1px solid #e0e0e0;padding:8px;border-radius:4px;margin-bottom:8px}
+.elemento-box.vinculado{border-color:#0d6efd;background:#e7f1ff}
 .elemento-box h4{font-size:11px;color:#007bff;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
 .btn-remover{background:#dc3545;color:white;border:none;padding:2px 6px;font-size:10px;border-radius:3px;cursor:pointer}
-.btn-add{background:#17a2b8;color:white;border:none;padding:8px;width:100%;border-radius:4px;cursor:pointer;font-weight:bold;font-size:12px;margin-bottom:8px}
+.btn-add{background:#17a2b8;color:white;border:none;padding:10px;width:100%;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-add:hover{background:#138496}
 .btn-save{background:#0d6efd;color:white;border:none;padding:10px;width:100%;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;margin-bottom:8px}
 .btn-save.salvo{background:#198754 !important}
 .print-btn{background:#28a745;color:white;border:none;padding:10px;width:100%;border-radius:4px;cursor:pointer;font-weight:bold;font-size:13px;margin-top:6px}
 .preview-area{flex:1;display:flex;justify-content:center;align-items:center;background:#e9ecef;padding:20px;overflow:auto}
-#etiqueta{background:#ffffff;border:2px solid #999;position:relative;box-shadow:0 4px 10px rgba(0,0,0,0.2);overflow:hidden}
+#etiqueta{background:#fff;border:2px solid #999;position:relative;box-shadow:0 4px 10px rgba(0,0,0,0.2);overflow:hidden}
 .etiqueta-item-preview{position:absolute;user-select:none;touch-action:none;box-sizing:border-box;border:1px dashed #007bff;background-color:rgba(0,123,255,0.03);cursor:move;display:flex;align-items:center;justify-content:center}
 .preview-img{width:100%;height:100%;object-fit:contain;pointer-events:none}
 .preview-ean13,.preview-barcode{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;overflow:hidden}
@@ -31,31 +34,94 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .preview-text{width:100%;height:100%;display:flex;align-items:center;overflow:hidden;pointer-events:none;padding:0 2px}
 .preview-linha{width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .linha-interna{background-color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-@media print{body{background:none}.sidebar{display:none}.preview-area{background:none;padding:0}#etiqueta{border:none !important;box-shadow:none !important}.etiqueta-item-preview{border:none !important;background:transparent !important}}
+/* MENU SUSPENSO FLUTUANTE - NAVEGAÇÃO */
+.menu-suspenso{position:fixed;top:12px;right:12px;z-index:9999}
+.menu-btn{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;transition:0.2s}
+.menu-btn:hover{transform:scale(1.05)}
+.menu-dropdown{position:absolute;top:54px;right:0;width:210px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.18);overflow:hidden;display:none;border:1px solid #dee2e6}
+.menu-dropdown.ativo{display:block;animation:menuFade 0.2s ease}
+@keyframes menuFade{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.menu-dropdown a{display:flex;align-items:center;gap:10px;padding:12px 14px;text-decoration:none;color:#333;font-size:13px;font-weight:500;border-bottom:1px solid #f1f1f1}
+.menu-dropdown a:hover{background:#e7f1ff;color:#0d6efd}
+.menu-dropdown a.ativo{background:#0d6efd;color:white}
+.menu-dropdown .menu-header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:10px 14px;font-size:11px;font-weight:bold}
+/* MENU SUSPENSO PARA ADICIONAR ELEMENTO - NOVO */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;display:none;align-items:center;justify-content:center}
+.modal-overlay.ativo{display:flex}
+.modal-box{background:white;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,0.3);width:340px;overflow:hidden;animation:modalPop 0.25s ease}
+@keyframes modalPop{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:14px 16px;font-weight:bold;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:16px}
+.modal-body label{font-size:12px;font-weight:bold;color:#333;margin-bottom:6px;display:block}
+.modal-select{width:100%;padding:10px;border:2px solid #0d6efd;border-radius:8px;font-size:14px;background:#f0f7ff;cursor:pointer}
+.modal-footer{display:flex;gap:8px;padding:12px 16px;background:#f8f9fa}
+.modal-btn{flex:1;padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:13px}
+.modal-btn-ok{background:#0d6efd;color:white}
+.modal-btn-cancel{background:#e9ecef;color:#333}
+@media print{.sidebar,.menu-suspenso,.modal-overlay{display:none !important}.preview-area{background:none;padding:0}#etiqueta{border:none !important;box-shadow:none !important}.etiqueta-item-preview{border:none !important;background:transparent !important}}
 </style>
 </head>
 <body>
+
+<div class="menu-suspenso">
+    <button class="menu-btn" onclick="toggleMenuSuspenso()" id="btnMenuSuspenso">☰</button>
+    <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-header">📂 NAVEGAÇÃO RÁPIDA</div>
+        <a href="index.html">📊 Dashboard</a>
+        <a href="produtos.html">📦 Produtos</a>
+        <a href="operadores.html">👷 Operadores</a>
+        <a href="testes.html">🧪 Testes</a>
+        <a href="etiquetas.html" class="ativo">🏷️ Etiquetas</a>
+        <a href="logs.html">📋 Logs</a>
+        <a href="#" onclick="window.print(); return false;">🖨️ Imprimir</a>
+    </div>
+</div>
+
+<!-- MODAL MENU SUSPENSO PARA ADICIONAR ELEMENTO -->
+<div class="modal-overlay" id="modalAddElemento" onclick="if(event.target===this) fecharModalAdd()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>➕ Adicionar Elemento</span>
+            <span style="cursor:pointer" onclick="fecharModalAdd()">✕</span>
+        </div>
+        <div class="modal-body">
+            <label>Escolha o tipo do elemento:</label>
+            <select id="selectTipoElemento" class="modal-select">
+                <option value="texto">📝 Texto</option>
+                <option value="imagem">🖼️ Imagem (logo)</option>
+                <option value="barcode">📊 Barcode (Código Produto)</option>
+                <option value="ean13">📦 EAN13</option>
+                <option value="linha">➖ Linha</option>
+            </select>
+            <div style="margin-top:12px;background:#e7f1ff;border-radius:8px;padding:8px;font-size:11px;color:#0d6efd">
+                <b>Dica:</b> <span id="dicaTipo">Texto livre, descrição, série, etc</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="fecharModalAdd()">Cancelar</button>
+            <button class="modal-btn modal-btn-ok" onclick="confirmarAddElemento()">OK Adicionar</button>
+        </div>
+    </div>
+</div>
+
 <div class="sidebar">
     <h2 style="border-color:#198754;color:#198754">📦 DADOS DA ETIQUETA - INÍCIO</h2>
     <div class="dados-box">
         <div class="form-group">
-            <label>1️⃣ Código do Produto *</label>
-            <select id="selectProdutoCodigo" onchange="aoSelecionarProduto(this.value)">
-                <option value="">-- Selecione o produto --</option>
-            </select>
+            <label>1️⃣ Código do Produto * (puxa do cadastro)</label>
+            <select id="selectProdutoCodigo" onchange="aoSelecionarProduto(this.value)"><option value="">-- Selecione o produto --</option></select>
         </div>
         <div class="row-inputs">
-            <div class="form-group"><label>Código Produto:</label><input type="text" id="inputCodProduto" placeholder="Ex: EL250-01" oninput="dadosEtiqueta.codigo=this.value; aplicarDadosNaEtiqueta()"></div>
-            <div class="form-group"><label>EAN13:</label><input type="text" id="inputEAN13" maxlength="13" placeholder="7891234567895" oninput="this.value=this.value.replace(/[^0-9]/g,''); dadosEtiqueta.ean13=this.value; aplicarDadosNaEtiqueta()"></div>
+            <div class="form-group"><label>Código Produto (vincula BARCODE + EAN13):</label><input type="text" id="inputCodProduto" placeholder="Ex: EL250-01" oninput="dadosEtiqueta.codigo=this.value; vincularTodos('codigo', this.value)"></div>
+            <div class="form-group"><label>EAN13 (vinculado):</label><input type="text" id="inputEAN13" maxlength="13" placeholder="7891234567895" oninput="this.value=this.value.replace(/[^0-9]/g,''); dadosEtiqueta.ean13=this.value; vincularTodos('ean13', this.value)"></div>
         </div>
-        <div class="form-group"><label>Descrição / Nome:</label><input type="text" id="inputDescricao" placeholder="Ex: Leitor Elgin EL250" oninput="dadosEtiqueta.descricao=this.value; aplicarDadosNaEtiqueta()"></div>
+        <div class="form-group"><label>Descrição:</label><input type="text" id="inputDescricao" placeholder="Ex: Leitor Elgin EL250" oninput="dadosEtiqueta.descricao=this.value; vincularTodos('descricao', this.value)"></div>
         <div class="form-group">
             <label>2️⃣ Número de Série (puxa do TESTE):</label>
             <select id="selectSerie" onchange="aoSelecionarSerie(this.value)"><option value="">-- Últimos testes --</option></select>
-            <input type="text" id="inputSerie" style="margin-top:4px" placeholder="Ou digite o Nº Série" oninput="dadosEtiqueta.serie=this.value; aplicarDadosNaEtiqueta()">
+            <input type="text" id="inputSerie" style="margin-top:4px" placeholder="Ou digite o Nº Série" oninput="dadosEtiqueta.serie=this.value; vincularTodos('serie', this.value)">
         </div>
-        <button class="btn-add" style="background:#0d6efd;margin-top:6px" onclick="aplicarDadosNaEtiqueta()">🔄 Aplicar na Etiqueta</button>
-        <small style="font-size:10px">Código aparece <b>em BARCODE e ESCRITO</b></small>
+        <div class="vinculo-aviso">🔗 <b>VINCULADO:</b> Código no topo atualiza <b>BARCODE + TEXTO</b>. EAN13 atualiza barra EAN13. Tudo interligado!</div>
     </div>
 
     <h2>Configurar Etiqueta</h2>
@@ -64,15 +130,14 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
         <div class="form-group"><label>Altura (mm):</label><input type="number" id="inputHeight" value="75" oninput="renderizarEtiqueta(); autoSalvar()"></div>
     </div>
 
-    <h2>Elementos da Etiqueta</h2>
+    <h2>Elementos - VINCULADOS</h2>
     <div id="container-elementos-form"></div>
-    <button class="btn-add" onclick="adicionarElemento()">+ Adicionar Elemento (texto, imagem, barcode, ean13, linha)</button>
+    <button class="btn-add" onclick="abrirModalAdd()">▼ Adicionar Elemento (menu suspenso) ▼</button>
     <button class="btn-add" style="background:#6c757d" onclick="centralizarElementos()">Organizar em Pilha</button>
 
     <h2 style="border-color:#198754">💾 Salvar Estado</h2>
     <button class="btn-save" id="btnSalvar" onclick="salvarEstadoEtiqueta()">💾 Salvar Último Estado da Etiqueta</button>
     <button class="btn-add" style="background:#6c757d" onclick="carregarEstadoEtiqueta(true)">↩️ Restaurar Último Salvo</button>
-    <button class="btn-add" style="background:#dc3545" onclick="limparEstadoSalvo()">🗑️ Limpar Estado</button>
     <div id="statusSave" style="font-size:10px;color:#666;margin-bottom:8px;text-align:center"></div>
 
     <button class="print-btn" onclick="window.print()">🖨️ Imprimir Etiqueta</button>
@@ -93,6 +158,57 @@ let elementos=[
 let idContador=7;
 function mmParaPx(mm){return mm*(96/25.4);} function pxParaMm(px){return px/(96/25.4);}
 const STORAGE_KEY='etiqueta_estado_v2';
+
+function vincularTodos(campo, novoValor){
+    if(campo==='codigo') dadosEtiqueta.codigo=novoValor;
+    else if(campo==='ean13') dadosEtiqueta.ean13=novoValor;
+    else if(campo==='descricao') dadosEtiqueta.descricao=novoValor;
+    else if(campo==='serie') dadosEtiqueta.serie=novoValor;
+    elementos.forEach(el=>{
+        if(el.campo===campo){
+            if(campo==='codigo'){
+                if(el.tipo==='texto') el.valor=`Cód: ${novoValor}`;
+                else if(el.tipo==='barcode') el.valor=novoValor;
+            } else if(campo==='ean13'){ el.valor=novoValor; }
+            else if(campo==='descricao'){ el.valor=`Descrição: ${novoValor}`; }
+            else if(campo==='serie'){ el.valor=`S/N: ${novoValor}`; }
+        }
+    });
+    renderizarTudo(); autoSalvar();
+}
+
+function vincularCampo(id, novoCampo){
+    const el=elementos.find(e=>e.id===id);
+    if(!el) return;
+    el.campo=novoCampo;
+    // Ao vincular, puxa valor atual do dadosEtiqueta
+    if(novoCampo){
+        if(novoCampo==='codigo') el.valor=dadosEtiqueta.codigo;
+        else if(novoCampo==='ean13') el.valor=dadosEtiqueta.ean13;
+        else if(novoCampo==='descricao') el.valor=dadosEtiqueta.descricao;
+        else if(novoCampo==='serie') el.valor=dadosEtiqueta.serie;
+        // Formata texto se for texto
+        if(el.tipo==='texto'){
+            if(novoCampo==='codigo') el.valor=`Cód: ${dadosEtiqueta.codigo}`;
+            else if(novoCampo==='descricao') el.valor=`Descrição: ${dadosEtiqueta.descricao}`;
+            else if(novoCampo==='serie') el.valor=`S/N: ${dadosEtiqueta.serie}`;
+        }
+    }
+    renderizarTudo(); autoSalvar();
+}
+function atualizarVinculado(id, novoValor){
+    const el=elementos.find(e=>e.id===id);
+    if(!el) return;
+    if(el.campo){
+        // Se está vinculado, atualiza todos vinculados
+        vincularTodos(el.campo, novoValor);
+    } else {
+        // Se manual, só atualiza ele
+        el.valor=novoValor;
+        renderizarEtiqueta();
+        autoSalvar();
+    }
+}
 
 function carregarProdutosSelect(){
     const sel=document.getElementById('selectProdutoCodigo');
@@ -118,24 +234,16 @@ function aoSelecionarProduto(prodId){
     if(!prodId) return;
     const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
     const p=produtos.find(x=>x.id===prodId); if(!p) return;
+    document.getElementById('inputCodProduto').value=p.codigo||'';
+    document.getElementById('inputDescricao').value=p.nome||'';
+    document.getElementById('inputEAN13').value=p.ean13||'';
     dadosEtiqueta.codigo=p.codigo||''; dadosEtiqueta.descricao=p.nome||''; dadosEtiqueta.ean13=p.ean13||'';
-    document.getElementById('inputCodProduto').value=dadosEtiqueta.codigo;
-    document.getElementById('inputDescricao').value=dadosEtiqueta.descricao;
-    document.getElementById('inputEAN13').value=dadosEtiqueta.ean13;
-    aplicarDadosNaEtiqueta();
+    vincularTodos('codigo', dadosEtiqueta.codigo);
+    vincularTodos('descricao', dadosEtiqueta.descricao);
+    vincularTodos('ean13', dadosEtiqueta.ean13);
 }
-function aoSelecionarSerie(serie){ if(!serie) return; dadosEtiqueta.serie=serie; document.getElementById('inputSerie').value=serie; aplicarDadosNaEtiqueta(); }
-function aplicarDadosNaEtiqueta(){
-    elementos.forEach(el=>{
-        if(el.campo==='codigo'){
-            if(el.tipo==='texto') el.valor=`Cód: ${dadosEtiqueta.codigo}`;
-            else if(el.tipo==='barcode') el.valor=dadosEtiqueta.codigo;
-        } else if(el.campo==='descricao'){ el.valor=`Descrição: ${dadosEtiqueta.descricao}`; }
-        else if(el.campo==='ean13'){ el.valor=dadosEtiqueta.ean13||'7891234567895'; }
-        else if(el.campo==='serie'){ el.valor=`S/N: ${dadosEtiqueta.serie}`; }
-    });
-    renderizarTudo(); autoSalvar();
-}
+function aoSelecionarSerie(serie){ if(!serie) return; document.getElementById('inputSerie').value=serie; vincularTodos('serie', serie); }
+
 function salvarEstadoEtiqueta(){
     const estado={elementos, idContador, dadosEtiqueta, largura:document.getElementById('inputWidth').value, altura:document.getElementById('inputHeight').value, data:new Date().toISOString()};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
@@ -157,41 +265,99 @@ function carregarEstadoEtiqueta(alertar=false){
         return true;
     }catch(e){ return false; }
 }
-function limparEstadoSalvo(){ if(!confirm('Limpar estado salvo?')) return; localStorage.removeItem(STORAGE_KEY); document.getElementById('statusSave').innerText='Estado limpo'; }
 let autoSaveTimeout=null;
 function autoSalvar(){ clearTimeout(autoSaveTimeout); autoSaveTimeout=setTimeout(()=>{ const est={elementos,idContador,dadosEtiqueta,largura:document.getElementById('inputWidth').value,altura:document.getElementById('inputHeight').value,data:new Date().toISOString()}; localStorage.setItem(STORAGE_KEY,JSON.stringify(est)); document.getElementById('statusSave').innerText='Auto-salvo '+new Date().toLocaleTimeString('pt-BR'); },1000); }
+
+// NOVO: MENU SUSPENSO PARA ADICIONAR ELEMENTO (substitui prompt)
+function abrirModalAdd(){
+    document.getElementById('modalAddElemento').classList.add('ativo');
+    document.getElementById('selectTipoElemento').focus();
+}
+function fecharModalAdd(){
+    document.getElementById('modalAddElemento').classList.remove('ativo');
+}
+function confirmarAddElemento(){
+    const tipo=document.getElementById('selectTipoElemento').value;
+    fecharModalAdd();
+    let novoW=tipo==='imagem'?30:(tipo==='barcode'?80:(tipo==='ean13'?70:90));
+    let novoH=tipo==='imagem'?20:(tipo==='barcode'?16:(tipo==='ean13'?20:6));
+    let valorPadrao=tipo==='texto'?'Novo Texto':(tipo==='imagem'?'':(tipo==='barcode'?dadosEtiqueta.codigo:(tipo==='ean13'?dadosEtiqueta.ean13:'')));
+    let campoPadrao=tipo==='barcode'?'codigo':(tipo==='ean13'?'ean13':'');
+    elementos.push({id:idContador++, tipo:tipo, valor:valorPadrao, x:5, y:35, w:novoW, h:novoH, tamFonte:10, negrito:false, tamTexto:9, campo:campoPadrao, orientacao:'horizontal', espessuraLinha:1});
+    renderizarTudo(); autoSalvar();
+}
+// Dicas dinâmicas no modal
+document.getElementById('selectTipoElemento')?.addEventListener('change', function(){
+    const dicas={
+        'texto':'Texto livre, descrição, série, etc',
+        'imagem':'Logo Elgin, foto do produto, ícone',
+        'barcode':'Código do produto em barras Code39 (vinculado)',
+        'ean13':'Código EAN13 em barras (vinculado ao cadastro)',
+        'linha':'Linha separadora horizontal ou vertical'
+    };
+    document.getElementById('dicaTipo').innerText=dicas[this.value]||'';
+});
 
 function inicializarFormulario(){
     const container=document.getElementById('container-elementos-form'); container.innerHTML='';
     elementos.forEach((el)=>{
         let htmlCampos='';
         if(el.tipo==='texto'){
-            htmlCampos=`<div class="form-group"><label>Texto: [${el.campo||'manual'}]</label><input type="text" value="${el.valor}" oninput="atualizarDado(${el.id}, 'valor', this.value); autoSalvar()"></div><div class="row-inputs"><div class="form-group"><label>Fonte:</label><input type="number" value="${el.tamFonte}" oninput="atualizarDado(${el.id}, 'tamFonte', parseInt(this.value)); autoSalvar()"></div><div class="form-group"><label>Negrito:</label><select onchange="atualizarDado(${el.id}, 'negrito', this.value==='true'); autoSalvar()"><option value="true" ${el.negrito?'selected':''}>Sim</option><option value="false" ${!el.negrito?'selected':''}>Não</option></select></div></div><div class="form-group"><label>Vincular:</label><select onchange="atualizarDado(${el.id}, 'campo', this.value); autoSalvar()"><option value="">Manual</option><option value="codigo" ${el.campo==='codigo'?'selected':''}>Código Produto</option><option value="descricao" ${el.campo==='descricao'?'selected':''}>Descrição</option><option value="serie" ${el.campo==='serie'?'selected':''}>Nº Série</option></select></div>`;
+            htmlCampos=`<div class="form-group"><label>Texto vinculado [${el.campo||'manual'}]:</label><input type="text" value="${el.valor}" oninput="if('${el.campo}'!==''){ vincularTodos('${el.campo}', this.value.replace(/^Cód: |^Descrição: |^S\/N: /,'')) } else { atualizarDado(${el.id}, 'valor', this.value); }"></div>`;
         } else if(el.tipo==='imagem'){
-            htmlCampos=`<div class="form-group"><label>Selecionar Imagem (logo, etc):</label><input type="file" accept="image/*" onchange="carregarImagemLocal(${el.id}, event)"></div><div class="form-group"><label>Ou URL da imagem:</label><input type="text" value="${el.valor.startsWith('data:')?'':el.valor}" placeholder="https://..." oninput="atualizarDado(${el.id}, 'valor', this.value); autoSalvar()"></div>`;
+            htmlCampos=`<div class="form-group"><label>Imagem:</label><input type="file" accept="image/*" onchange="carregarImagemLocal(${el.id}, event)"><input type="text" value="${el.valor.startsWith('data:')?'':el.valor}" placeholder="URL" oninput="atualizarDado(${el.id}, 'valor', this.value); autoSalvar()" style="margin-top:4px"></div>`;
         } else if(el.tipo==='barcode'){
-            htmlCampos=`<div class="form-group"><label>BARCODE Código [${el.campo}]</label><input type="text" value="${el.valor}" oninput="atualizarDado(${el.id}, 'valor', this.value); autoSalvar()"></div>`;
+            htmlCampos=`
+                <div class="form-group"><label>🔗 Vincular a:</label>
+                <select onchange="vincularCampo(${el.id}, this.value)" class="modal-select" style="padding:6px;font-size:12px">
+                    <option value="" ${!el.campo?'selected':''}>✏️ Manual (digitado)</option>
+                    <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
+                    <option value="descricao" ${el.campo==='descricao'?'selected':''}>📝 Descrição</option>
+                    <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série (teste)</option>
+                    <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13</option>
+                </select>
+                </div>
+                <div class="form-group"><label>Valor BARCODE ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" oninput="atualizarVinculado(${el.id}, this.value)"></div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Tam. Barras:</label><input type="number" value="${el.tamanhoBarra||36}" min="10" max="80" oninput="atualizarDado(${el.id}, 'tamanhoBarra', parseInt(this.value))"></div>
+                    <div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="20" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div>
+                </div>
+                <div class="form-group"><label>↕️ Espaço entre código e informação: <b>${el.distanciaTexto!==undefined?el.distanciaTexto:-2}px</b></label>
+                <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); this.previousElementSibling.innerHTML='↕️ Espaço entre código e informação: <b>'+this.value+'px</b>'" style="width:100%">
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Grudado</span><span>Normal</span><span>Afastado</span></div>
+                </div>
+            `;
         } else if(el.tipo==='ean13'){
-            htmlCampos=`<div class="form-group"><label>EAN13 [${el.campo}]</label><input type="text" value="${el.valor}" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarDado(${el.id}, 'valor', this.value); autoSalvar()"></div>`;
+            htmlCampos=`
+                <div class="form-group"><label>🔗 Vincular a:</label>
+                <select onchange="vincularCampo(${el.id}, this.value)" class="modal-select" style="padding:6px;font-size:12px">
+                    <option value="" ${!el.campo?'selected':''}>✏️ Manual</option>
+                    <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13 Produto (recomendado)</option>
+                    <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
+                    <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série</option>
+                </select>
+                </div>
+                <div class="form-group"><label>Valor EAN13 ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarVinculado(${el.id}, this.value)"></div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="18" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div>
+                    <div class="form-group"><label>Larg. Barras:</label><input type="number" step="0.1" value="${el.eanLargura||1.5}" min="1" max="3" oninput="atualizarDado(${el.id}, 'eanLargura', parseFloat(this.value))"></div>
+                </div>
+                <div class="form-group"><label>↕️ Espaço entre barras e número: <b>${el.eanEspaco!==undefined?el.eanEspaco:2}px</b></label>
+                <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); this.previousElementSibling.innerHTML='↕️ Espaço entre barras e número: <b>'+this.value+'px</b>'" style="width:100%">
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Colado</span><span>Normal</span><span>Afastado</span></div>
+                </div>
+            `;
         } else if(el.tipo==='linha'){
             htmlCampos=`<div class="row-inputs"><div class="form-group"><label>Orientação:</label><select onchange="atualizarDado(${el.id}, 'orientacao', this.value); autoSalvar()"><option value="horizontal" ${el.orientacao==='horizontal'?'selected':''}>Horizontal</option><option value="vertical" ${el.orientacao==='vertical'?'selected':''}>Vertical</option></select></div><div class="form-group"><label>Espessura:</label><input type="number" step="0.5" value="${el.espessuraLinha||1}" oninput="atualizarDado(${el.id}, 'espessuraLinha', parseFloat(this.value)); autoSalvar()"></div></div>`;
         }
-        const divBox=document.createElement('div'); divBox.className='elemento-box'; divBox.innerHTML=`<h4><span>${el.tipo.toUpperCase()} ${el.campo?'🔗':''}</span><button class="btn-remover" onclick="removerElemento(${el.id})">Remover</button></h4>${htmlCampos}<div class="row-inputs" style="margin-top:5px;"><div class="form-group"><label>L (mm):</label><input type="number" value="${el.w.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'w', this.value)"></div><div class="form-group"><label>A (mm):</label><input type="number" value="${el.h.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'h', this.value)"></div></div>`; container.appendChild(divBox);
+        const divBox=document.createElement('div'); divBox.className='elemento-box '+(el.campo?'vinculado':''); divBox.innerHTML=`<h4><span>${el.tipo.toUpperCase()} ${el.campo?'🔗 '+el.campo.toUpperCase():''}</span><button class="btn-remover" onclick="removerElemento(${el.id})">Remover</button></h4>${htmlCampos}<div class="row-inputs" style="margin-top:5px;"><div class="form-group"><label>L (mm):</label><input type="number" value="${el.w.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'w', this.value)"></div><div class="form-group"><label>A (mm):</label><input type="number" value="${el.h.toFixed(1)}" oninput="atualizarDimensoes(${el.id}, 'h', this.value)"></div></div>`; container.appendChild(divBox);
     });
 }
 function carregarImagemLocal(id,event){ const arq=event.target.files[0]; if(arq){ const r=new FileReader(); r.onload=e=>{ atualizarDado(id,'valor',e.target.result); autoSalvar(); }; r.readAsDataURL(arq);} }
-function adicionarElemento(){
-    let tipo=prompt("Escolha o tipo do elemento:\n- texto\n- imagem\n- barcode\n- ean13\n- linha","imagem");
-    if(!tipo) return; tipo=tipo.toLowerCase().trim();
-    if(!['texto','imagem','barcode','ean13','linha'].includes(tipo)){ alert("Tipo inválido. Use: texto, imagem, barcode, ean13, linha"); return; }
-    let novoW=tipo==='imagem'?30:(tipo==='barcode'?80:(tipo==='ean13'?70:90));
-    let novoH=tipo==='imagem'?20:(tipo==='barcode'?16:(tipo==='ean13'?20:6));
-    let valorPadrao=tipo==='texto'?'Novo Texto':(tipo==='imagem'?'':(tipo==='barcode'?'PROD123':(tipo==='ean13'?'7891234567895':'')));
-    elementos.push({id:idContador++, tipo:tipo, valor:valorPadrao, x:5, y:35, w:novoW, h:novoH, tamFonte:10, negrito:false, tamTexto:9, campo:tipo==='barcode'?'codigo':'', orientacao:'horizontal', espessuraLinha:1});
-    renderizarTudo(); autoSalvar();
-}
+// Compatibilidade: adicionarElemento agora abre o menu suspenso
+function adicionarElemento(){ abrirModalAdd(); }
 function removerElemento(id){ elementos=elementos.filter(e=>e.id!==id); renderizarTudo(); autoSalvar(); }
-function atualizarDado(id,campo,valor){ const el=elementos.find(e=>e.id===id); if(el){ el[campo]=valor; renderizarEtiqueta(); } }
+function atualizarDado(id,campo,valor){ const el=elementos.find(e=>e.id===id); if(el){ el[campo]=valor; renderizarEtiqueta(); autoSalvar(); } }
 function atualizarDimensoes(id,campo,valor){ const el=elementos.find(e=>e.id===id); if(el){ el[campo]=parseFloat(valor)||0.5; renderizarEtiqueta(); autoSalvar(); } }
 function centralizarElementos(){ let y=3; elementos.forEach(el=>{ el.x=5; el.y=y; y+=el.h+2; }); renderizarTudo(); autoSalvar(); }
 function renderizarEtiqueta(){
@@ -199,9 +365,9 @@ function renderizarEtiqueta(){
     elementos.forEach((el)=>{
         const itemDiv=document.createElement('div'); itemDiv.className='etiqueta-item-preview'; itemDiv.setAttribute('data-id',el.id); itemDiv.style.left=mmParaPx(el.x)+'px'; itemDiv.style.top=mmParaPx(el.y)+'px'; itemDiv.style.width=mmParaPx(el.w)+'px'; itemDiv.style.height=mmParaPx(el.h)+'px';
         if(el.tipo==='texto'){ const inner=document.createElement('div'); inner.className='preview-text'; inner.innerText=el.valor; inner.style.fontSize=(el.tamFonte||11)+'px'; inner.style.fontWeight=el.negrito?'bold':'normal'; itemDiv.appendChild(inner); }
-        else if(el.tipo==='imagem'){ if(el.valor && el.valor.trim()!==''){ const img=document.createElement('img'); img.className='preview-img'; img.src=el.valor; itemDiv.appendChild(img); } else { const ph=document.createElement('div'); ph.style.fontSize='10px'; ph.style.color='#888'; ph.innerText='Sem Imagem - clique para carregar'; itemDiv.appendChild(ph); } }
+        else if(el.tipo==='imagem'){ if(el.valor){ const img=document.createElement('img'); img.className='preview-img'; img.src=el.valor; itemDiv.appendChild(img); } else { const ph=document.createElement('div'); ph.style.fontSize='10px'; ph.style.color='#888'; ph.innerText='Sem Imagem'; itemDiv.appendChild(ph); } }
         else if(el.tipo==='barcode'){ if(el.valor){ const bcDiv=document.createElement('div'); bcDiv.className='preview-barcode'; let tv=el.valor.toUpperCase(); if(!tv.startsWith('*')) tv='*'+tv; if(!tv.endsWith('*')) tv=tv+'*'; bcDiv.innerHTML=`<div class="barcode-font" style="font-size:${el.tamanhoBarra||36}px;">${tv}</div><div class="barcode-text" style="font-size:${el.tamTexto||9}px;">${el.valor.toUpperCase()}</div>`; itemDiv.appendChild(bcDiv); } }
-        else if(el.tipo==='ean13'){ if(el.valor){ const eanDiv=document.createElement('div'); eanDiv.className='preview-ean13'; const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.style.width='100%'; svg.style.height='100%'; eanDiv.appendChild(svg); itemDiv.appendChild(eanDiv); setTimeout(()=>{ try{ JsBarcode(svg, el.valor, {format:"EAN13", displayValue:true, fontSize:el.tamTexto||9, textMargin:2, margin:0, width:1.5, height:40, background:"#ffffff"});}catch(err){ svg.innerHTML=`<text x="5" y="15" font-size="10" fill="red">EAN inválido</text>`; } },0); } }
+        else if(el.tipo==='ean13'){ if(el.valor){ const eanDiv=document.createElement('div'); eanDiv.className='preview-ean13'; const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.style.width='100%'; svg.style.height='100%'; eanDiv.appendChild(svg); itemDiv.appendChild(eanDiv); setTimeout(()=>{ try{ JsBarcode(svg, el.valor, {format:"EAN13", displayValue:true, fontSize:el.tamTexto||9, textMargin:el.eanEspaco!==undefined?el.eanEspaco:2, margin:0, width:el.eanLargura||1.5, height:40, background:"#ffffff"});}catch(err){ svg.innerHTML=`<text x="5" y="15" font-size="10" fill="red">EAN inválido</text>`; } },0); } }
         else if(el.tipo==='linha'){ const linhaDiv=document.createElement('div'); linhaDiv.className='preview-linha'; let esp=mmParaPx(el.espessuraLinha||1); const li=document.createElement('div'); li.className='linha-interna'; if(el.orientacao==='vertical'){ li.style.width=esp+'px'; li.style.height='100%'; } else { li.style.width='100%'; li.style.height=esp+'px'; } linhaDiv.appendChild(li); itemDiv.appendChild(linhaDiv); }
         etiqueta.appendChild(itemDiv);
     });
@@ -209,6 +375,22 @@ function renderizarEtiqueta(){
 }
 function ativarArrasto(){ interact('.etiqueta-item-preview').draggable({ inertia:true, modifiers:[interact.modifiers.restrictRect({restriction:'parent',endOnly:true})], listeners:{ move(event){ const target=event.target; const id=parseInt(target.getAttribute('data-id')); const elData=elementos.find(e=>e.id===id); if(elData){ elData.x+=pxParaMm(event.dx); elData.y+=pxParaMm(event.dy); target.style.left=mmParaPx(elData.x)+'px'; target.style.top=mmParaPx(elData.y)+'px'; } }, end(){ autoSalvar(); } } }); }
 function renderizarTudo(){ inicializarFormulario(); renderizarEtiqueta(); }
+
+// MENU SUSPENSO NAVEGAÇÃO
+function toggleMenuSuspenso(){
+    const dd=document.getElementById('menuDropdown');
+    const btn=document.getElementById('btnMenuSuspenso');
+    dd.classList.toggle('ativo');
+    btn.textContent = dd.classList.contains('ativo') ? '✕' : '☰';
+}
+document.addEventListener('click', function(e){
+    const menu=document.querySelector('.menu-suspenso');
+    if(menu && !menu.contains(e.target)){
+        const dd=document.getElementById('menuDropdown');
+        if(dd){ dd.classList.remove('ativo'); document.getElementById('btnMenuSuspenso').textContent='☰'; }
+    }
+});
+
 window.onload=()=>{ carregarProdutosSelect(); carregarSeriesSelect(); const carregou=carregarEstadoEtiqueta(false); renderizarTudo(); if(carregou) document.getElementById('statusSave').innerText='Estado anterior restaurado automaticamente'; };
 </script>
 </body>
