@@ -891,54 +891,63 @@ window.onload=()=>{
     }
     renderizarTudo();
     
-    // Verifica se deve imprimir automático (vindo do teste) - SEM PRECISAR CLICAR
+    // Verifica se deve imprimir automático (vindo do teste) - SEM PRECISAR CLICAR - SEMPRE NA PADRÃO
     const params = new URLSearchParams(window.location.search);
     if(params.get('autoPrint')==='1'){
-        // Esconde sidebar e mostra só etiqueta quando é impressão automática
         const isSilent = params.get('silent')==='1';
         if(isSilent){
             document.querySelectorAll('.sidebar, .menu-suspenso, .modal-overlay').forEach(el=>{ if(el) el.style.display='none'; });
             document.querySelector('.preview-area').style.padding='0';
             document.querySelector('.preview-area').style.background='white';
-            // Mostra aviso de impressão automática
-            const aviso = document.createElement('div');
-            aviso.className='no-print';
-            aviso.style.position='fixed';
-            aviso.style.top='10px';
-            aviso.style.left='50%';
-            aviso.style.transform='translateX(-50%)';
-            aviso.style.background='#198754';
-            aviso.style.color='white';
-            aviso.style.padding='8px 16px';
-            aviso.style.borderRadius='8px';
-            aviso.style.fontSize='12px';
-            aviso.style.zIndex='9999';
-            aviso.innerHTML='🖨️ Imprimindo automaticamente na impressora padrão...';
-            document.body.appendChild(aviso);
+            document.body.style.background='white';
         }
-        // Aguarda JsBarcode renderizar e imprime AUTOMATICAMENTE sem clicar
-        setTimeout(()=>{ 
-            console.log('Auto print etiqueta do teste - SEM CLIQUE');
-            window.focus();
-            window.print(); 
-            // Para modo kiosk-printing (impressão silenciosa), fecha após imprimir
-            if(isSilent){
-                setTimeout(()=>{ 
-                    // Tenta fechar janela automaticamente após impressão silenciosa
-                    // Só funciona se foi aberta via window.open
-                    window.close(); 
-                }, 1000);
-            }
-        }, 1200);
-        
-        // Fallback: tenta imprimir novamente após 2.5s caso barcode demore
+        // Mostra aviso
+        const aviso = document.createElement('div');
+        aviso.className='no-print';
+        aviso.id='avisoAutoPrint';
+        aviso.style.position='fixed';
+        aviso.style.top='10px';
+        aviso.style.left='50%';
+        aviso.style.transform='translateX(-50%)';
+        aviso.style.background='linear-gradient(135deg,#198754,#20c997)';
+        aviso.style.color='white';
+        aviso.style.padding='12px 20px';
+        aviso.style.borderRadius='10px';
+        aviso.style.fontSize='13px';
+        aviso.style.zIndex='99999';
+        aviso.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)';
+        aviso.style.fontWeight='bold';
+        aviso.innerHTML='🖨️ IMPRIMINDO NA IMPRESSORA PADRÃO...<br><small style="font-weight:normal">Sem precisar clicar - direto na padrão</small>';
+        document.body.appendChild(aviso);
+
+        function executarImpressaoPadrao(){
+            console.log('🖨️ Executando impressão na PADRÃO - sem clique');
+            try{
+                window.focus();
+                // Força impressora padrão
+                window.print();
+                console.log('window.print() chamado - deve ir para padrão');
+            }catch(e){ console.error('Erro print', e); }
+        }
+
+        // Tenta imprimir 3 vezes para garantir
+        setTimeout(executarImpressaoPadrao, 800);
+        setTimeout(executarImpressaoPadrao, 1800);
         setTimeout(()=>{
-            if(params.get('autoPrint')==='1' && !window.matchMedia('print').matches){
-                console.log('Tentativa 2 de impressão automática');
-                // Só tenta de novo se ainda não imprimiu
+            // Se ainda está aqui e é silent, tenta fechar
+            if(isSilent){
+                const av = document.getElementById('avisoAutoPrint');
+                if(av) av.innerHTML='✅ Enviado para impressora PADRÃO<br><small>Se não saiu, verifique se impressora padrão está configurada</small>';
             }
-        }, 2500);
-    }
+        }, 3000);
+
+        // Se estiver dentro de iframe, tenta imprimir o iframe também
+        if(window.self !== window.top){
+            console.log('Dentro de iframe - impressão via iframe');
+            setTimeout(()=>{
+                try{ window.parent.focus(); }catch(e){}
+            }, 500);
+        }
 };
 </script>
 </body>
