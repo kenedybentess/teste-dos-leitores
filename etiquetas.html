@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Etiquetas - Vinculado ao Teste</title>
+<title>Gerador de Etiquetas - Vinculado ao Teste - Auto Print</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -22,7 +22,6 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .elemento-box h4{font-size:11px;color:#007bff;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
 .btn-remover{background:#dc3545;color:white;border:none;padding:2px 6px;font-size:10px;border-radius:3px;cursor:pointer}
 .btn-add{background:#17a2b8;color:white;border:none;padding:10px;width:100%;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-add:hover{background:#138496}
 .btn-save{background:#0d6efd;color:white;border:none;padding:10px;width:100%;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;margin-bottom:8px}
 .btn-save.salvo{background:#198754 !important}
 .print-btn{background:#28a745;color:white;border:none;padding:10px;width:100%;border-radius:4px;cursor:pointer;font-weight:bold;font-size:13px;margin-top:6px}
@@ -94,29 +93,25 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 </div>
 
 <div class="sidebar">
-    <div id="alertaTesteVinculado" style="display:none;background:linear-gradient(135deg,#198754,#20c997);color:white;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;box-shadow:0 4px 12px rgba(25,135,84,0.3)">
-        <b>🔗 VINCULADO AO TESTE</b><br>
-        <small id="alertaTesteTexto">Carregado do último teste</small><br>
+    <div id="alertaTesteVinculado" style="display:none;background:linear-gradient(135deg,#198754,#20c997);color:white;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px">
+        <b>🔗 VINCULADO AO TESTE</b><br><small id="alertaTesteTexto"></small><br>
         <button onclick="carregarDaEtiquetaTeste()" style="margin-top:6px;background:white;color:#198754;border:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:11px;cursor:pointer">🔄 Recarregar do teste</button>
     </div>
 
     <h2 style="border-color:#198754;color:#198754">📦 DADOS DA ETIQUETA - VINCULADO AO TESTE</h2>
     <div class="dados-box teste-vinculo">
-        <div class="form-group">
-            <label>1️⃣ Código do Produto * (puxa do cadastro e do teste)</label>
-            <select id="selectProdutoCodigo" onchange="aoSelecionarProduto(this.value)"><option value="">-- Selecione o produto --</option></select>
-        </div>
+        <div class="form-group"><label>1️⃣ Código do Produto *</label><select id="selectProdutoCodigo" onchange="aoSelecionarProduto(this.value)"><option value="">-- Selecione --</option></select></div>
         <div class="row-inputs">
-            <div class="form-group"><label>Código Produto (vincula BARCODE):</label><input type="text" id="inputCodProduto" placeholder="Ex: EL250-01" oninput="dadosEtiqueta.codigo=this.value; vincularTodos('codigo', this.value)"></div>
-            <div class="form-group"><label>EAN13 (vinculado):</label><input type="text" id="inputEAN13" maxlength="13" placeholder="7891234567895" oninput="this.value=this.value.replace(/[^0-9]/g,''); dadosEtiqueta.ean13=this.value; vincularTodos('ean13', this.value)"></div>
+            <div class="form-group"><label>Código Produto (vincula BARCODE):</label><input type="text" id="inputCodProduto" oninput="dadosEtiqueta.codigo=this.value; vincularTodos('codigo', this.value)"></div>
+            <div class="form-group"><label>EAN13 (vinculado):</label><input type="text" id="inputEAN13" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); dadosEtiqueta.ean13=this.value; vincularTodos('ean13', this.value)"></div>
         </div>
-        <div class="form-group"><label>Descrição:</label><input type="text" id="inputDescricao" placeholder="Ex: Leitor Elgin EL250" oninput="dadosEtiqueta.descricao=this.value; vincularTodos('descricao', this.value)"></div>
+        <div class="form-group"><label>Descrição:</label><input type="text" id="inputDescricao" oninput="dadosEtiqueta.descricao=this.value; vincularTodos('descricao', this.value)"></div>
         <div class="form-group">
-            <label>2️⃣ Número de Série (puxa do TESTE): <span class="badge-vinculo">AUTO</span></label>
+            <label>2️⃣ Número de Série (do TESTE): <span class="badge-vinculo">AUTO</span></label>
             <select id="selectSerie" onchange="aoSelecionarSerie(this.value)"><option value="">-- Últimos testes --</option></select>
-            <input type="text" id="inputSerie" style="margin-top:4px;font-weight:bold;letter-spacing:1px" placeholder="S/N do teste" oninput="dadosEtiqueta.serie=this.value; vincularTodos('serie', this.value)">
+            <input type="text" id="inputSerie" style="margin-top:4px;font-weight:bold;letter-spacing:1px" oninput="dadosEtiqueta.serie=this.value; vincularTodos('serie', this.value)">
         </div>
-        <div class="vinculo-aviso">🔗 <b>VINCULADO AO TESTE.HTML:</b> Quando configurar o código no teste, a etiqueta atualiza. O S/N digitado no teste aparece aqui automaticamente. Ao final do teste, solicita impressão!</div>
+        <div class="vinculo-aviso">🔗 Quando configura o código no <b>teste.html</b>, a etiqueta atualiza. S/N do teste vem automático. Ao final do teste, já imprime!</div>
     </div>
 
     <h2>Configurar Etiqueta</h2>
@@ -131,17 +126,18 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
     <button class="btn-add" style="background:#6c757d" onclick="centralizarElementos()">Organizar em Pilha</button>
 
     <h2 style="border-color:#198754">💾 Salvar Estado</h2>
-    <button class="btn-save" id="btnSalvar" onclick="salvarEstadoEtiqueta()">💾 Salvar Último Estado da Etiqueta</button>
-    <button class="btn-add" style="background:#6c757d" onclick="carregarEstadoEtiqueta(true)">↩️ Restaurar Último Salvo</button>
+    <button class="btn-save" id="btnSalvar" onclick="salvarEstadoEtiqueta()">💾 Salvar Último Estado</button>
+    <button class="btn-add" style="background:#6c757d" onclick="carregarEstadoEtiqueta(true)">↩️ Restaurar</button>
     <div id="statusSave" style="font-size:10px;color:#666;margin-bottom:8px;text-align:center"></div>
-
     <button class="print-btn" onclick="window.print()">🖨️ Imprimir Etiqueta</button>
     <div style="text-align:center;margin-top:8px"><button onclick="window.location.href='testes.html'" style="background:#6c757d;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer">← Voltar ao Teste</button></div>
 </div>
 
 <div class="preview-area">
-    <div id="infoAutoPrint" style="display:none;background:#fff3cd;border:2px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:12px;max-width:400px;text-align:center;font-size:13px" class="no-print">
-        <b>🖨️ Etiqueta do teste carregada!</b><br><span id="infoAutoPrintTexto"></span><br><button onclick="window.print()" style="margin-top:8px;background:#198754;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer">Imprimir Agora</button>
+    <div id="infoAutoPrint" style="display:none;background:#d1e7dd;border:2px solid #198754;border-radius:10px;padding:12px;margin-bottom:12px;max-width:400px;text-align:center;font-size:13px" class="no-print">
+        <b>🖨️ Etiqueta do teste carregada! Imprimindo automático...</b><br><span id="infoAutoPrintTexto"></span><br>
+        <small>Se não imprimir, clique abaixo</small><br>
+        <button onclick="window.print()" style="margin-top:8px;background:#198754;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer">🖨️ Imprimir Agora</button>
     </div>
     <div id="etiqueta"></div>
 </div>
@@ -190,7 +186,6 @@ function vincularTodos(campo, novoValor){
         inicializarFormulario();
     }
     autoSalvar();
-    // Atualiza etiqueta_auto também
     try{
         const atual=JSON.parse(localStorage.getItem('etiqueta_auto')||'{}');
         atual[campo]=novoValor;
@@ -228,7 +223,7 @@ function carregarProdutosSelect(){
     const sel=document.getElementById('selectProdutoCodigo');
     try{
         const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
-        sel.innerHTML='<option value="">-- Selecione o produto --</option>';
+        sel.innerHTML='<option value="">-- Selecione --</option>';
         produtos.forEach(p=>{
             const opt=document.createElement('option'); opt.value=p.id; opt.textContent=`${p.codigo} - ${p.nome} ${p.ean13? '('+p.ean13+')':''}`; sel.appendChild(opt);
         });
@@ -260,7 +255,6 @@ function aoSelecionarSerie(serie){ if(!serie) return; document.getElementById('i
 
 function carregarDaEtiquetaTeste(){
     try{
-        // Tenta carregar de etiqueta_para_impressao (final do teste) primeiro
         let dados = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||'null');
         if(!dados) dados = JSON.parse(localStorage.getItem('etiqueta_auto')||'null');
         if(!dados){
@@ -276,7 +270,6 @@ function carregarDaEtiquetaTeste(){
             }
         }
         if(!dados) return false;
-
         if(dados.codigo) dadosEtiqueta.codigo=dados.codigo;
         if(dados.descricao) dadosEtiqueta.descricao=dados.descricao;
         if(dados.ean13) dadosEtiqueta.ean13=dados.ean13;
@@ -287,7 +280,6 @@ function carregarDaEtiquetaTeste(){
         document.getElementById('inputEAN13').value=dadosEtiqueta.ean13||'';
         document.getElementById('inputSerie').value=dadosEtiqueta.serie||'';
 
-        // Atualiza elementos vinculados
         elementos.forEach(el=>{
             if(el.campo && dados[el.campo]){
                 if(el.campo==='codigo'){
@@ -309,14 +301,18 @@ function carregarDaEtiquetaTeste(){
             textoAlerta.innerText = `${dados.codigo||''} | S/N: ${dados.serie||''} ${dados.resultado? '| '+dados.resultado : ''}`;
         }
 
-        // Se veio com auto=1 mostra banner de impressão
         const params = new URLSearchParams(window.location.search);
-        if(params.get('auto')==='1' || dados.serie){
-            const banner=document.getElementById('infoAutoPrint');
-            const bannerTexto=document.getElementById('infoAutoPrintTexto');
-            if(banner){
+        const isAutoPrint = params.get('autoPrint')==='1' || params.get('auto')==='1';
+        const banner=document.getElementById('infoAutoPrint');
+        const bannerTexto=document.getElementById('infoAutoPrintTexto');
+        if(banner){
+            if(isAutoPrint || dados.serie){
                 banner.style.display='block';
                 bannerTexto.innerText = `${dados.codigo||''} - S/N: ${dados.serie||''}`;
+                if(isAutoPrint){
+                    // AUTO IMPRIMIR após carregar
+                    setTimeout(()=>{ window.print(); }, 1200);
+                }
             }
         }
 
@@ -328,7 +324,7 @@ function carregarDaEtiquetaTeste(){
 function salvarEstadoEtiqueta(){
     const estado={elementos, idContador, dadosEtiqueta, largura:document.getElementById('inputWidth').value, altura:document.getElementById('inputHeight').value, data:new Date().toISOString()};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-    const btn=document.getElementById('btnSalvar'); btn.classList.add('salvo'); btn.innerText='✅ Estado Salvo!'; document.getElementById('statusSave').innerText='Salvo em '+new Date().toLocaleString('pt-BR'); setTimeout(()=>{btn.classList.remove('salvo'); btn.innerText='💾 Salvar Último Estado da Etiqueta';},2000);
+    const btn=document.getElementById('btnSalvar'); btn.classList.add('salvo'); btn.innerText='✅ Estado Salvo!'; document.getElementById('statusSave').innerText='Salvo em '+new Date().toLocaleString('pt-BR'); setTimeout(()=>{btn.classList.remove('salvo'); btn.innerText='💾 Salvar Último Estado';},2000);
 }
 function carregarEstadoEtiqueta(alertar=false){
     const raw=localStorage.getItem(STORAGE_KEY); if(!raw){ if(alertar) alert('Nenhum estado salvo'); return false; }
@@ -394,11 +390,10 @@ function inicializarFormulario(){
                     <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série (teste)</option>
                     <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13</option>
                 </select></div>
-                <div class="form-group"><label>Valor BARCODE ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" oninput="atualizarVinculado(${el.id}, this.value)"></div>
+                <div class="form-group"><label>Valor BARCODE:</label><input type="text" value="${el.valor}" oninput="atualizarVinculado(${el.id}, this.value)"></div>
                 <div class="row-inputs"><div class="form-group"><label>Tam. Barras:</label><input type="number" value="${el.tamanhoBarra||36}" min="10" max="80" oninput="atualizarDado(${el.id}, 'tamanhoBarra', parseInt(this.value))"></div><div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="20" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div></div>
-                <div class="form-group"><label>↕️ Espaço entre código e informação: <b>${el.distanciaTexto!==undefined?el.distanciaTexto:-2}px</b></label>
-                <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
-                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Grudado</span><span>Normal</span><span>Afastado</span></div></div>
+                <div class="form-group"><label>↕️ Espaço código ↔ info: <b>${el.distanciaTexto!==undefined?el.distanciaTexto:-2}px</b></label>
+                <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%"></div>
             `;
         } else if(el.tipo==='ean13'){
             htmlCampos=`
@@ -409,11 +404,10 @@ function inicializarFormulario(){
                     <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
                     <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série</option>
                 </select></div>
-                <div class="form-group"><label>Valor EAN13 ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarVinculado(${el.id}, this.value)"></div>
+                <div class="form-group"><label>Valor EAN13:</label><input type="text" value="${el.valor}" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarVinculado(${el.id}, this.value)"></div>
                 <div class="row-inputs"><div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="18" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div><div class="form-group"><label>Larg. Barras:</label><input type="number" step="0.1" value="${el.eanLargura||1.5}" min="1" max="3" oninput="atualizarDado(${el.id}, 'eanLargura', parseFloat(this.value))"></div></div>
-                <div class="form-group"><label>↕️ Espaço entre barras e número: <b>${el.eanEspaco!==undefined?el.eanEspaco:2}px</b></label>
-                <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
-                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Colado</span><span>Normal</span><span>Afastado</span></div></div>
+                <div class="form-group"><label>↕️ Espaço barras ↔ número: <b>${el.eanEspaco!==undefined?el.eanEspaco:2}px</b></label>
+                <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%"></div>
             `;
         } else if(el.tipo==='linha'){
             htmlCampos=`<div class="row-inputs"><div class="form-group"><label>Orientação:</label><select onchange="atualizarDado(${el.id}, 'orientacao', this.value); autoSalvar()"><option value="horizontal" ${el.orientacao==='horizontal'?'selected':''}>Horizontal</option><option value="vertical" ${el.orientacao==='vertical'?'selected':''}>Vertical</option></select></div><div class="form-group"><label>Espessura:</label><input type="number" step="0.5" value="${el.espessuraLinha||1}" oninput="atualizarDado(${el.id}, 'espessuraLinha', parseFloat(this.value)); autoSalvar()"></div></div>`;
@@ -446,33 +440,8 @@ function toggleMenuSuspenso(){ const dd=document.getElementById('menuDropdown');
 document.addEventListener('click', function(e){ const menu=document.querySelector('.menu-suspenso'); if(menu && !menu.contains(e.target)){ const dd=document.getElementById('menuDropdown'); if(dd){ dd.classList.remove('ativo'); document.getElementById('btnMenuSuspenso').textContent='☰'; } } });
 window.onload=()=>{
     carregarProdutosSelect(); carregarSeriesSelect();
-    // Primeiro tenta carregar do teste, depois do estado salvo
-    const carregouTeste = carregarDaEtiquetaTeste();
-    if(!carregouTeste){
-        carregarEstadoEtiqueta(false);
-    } else {
-        // Se carregou do teste, ainda tenta mesclar com layout salvo
-        const raw=localStorage.getItem('etiqueta_estado_v2');
-        if(raw){
-            try{
-                const est=JSON.parse(raw);
-                // Mantém layout (posições) do salvo, mas dados do teste
-                if(est.elementos){
-                    // Preserva posições mas atualiza valores vinculados com dados do teste
-                    const dadosTeste = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||localStorage.getItem('etiqueta_auto')||'{}');
-                    est.elementos.forEach(elSalvo=>{
-                        const elAtual=elementos.find(e=>e.campo===elSalvo.campo && e.tipo===elSalvo.tipo);
-                        // Se já tem dados do teste, usa
-                    });
-                }
-            }catch{}
-        }
-    }
+    carregarDaEtiquetaTeste();
     renderizarTudo();
-    if(!carregouTeste){
-        const raw=localStorage.getItem('etiqueta_estado_v2');
-        if(raw){ try{ const est=JSON.parse(raw); document.getElementById('statusSave').innerText='Layout restaurado de '+new Date(est.data).toLocaleString('pt-BR'); }catch{} }
-    }
 };
 </script>
 </body>
