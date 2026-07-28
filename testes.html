@@ -319,10 +319,7 @@ function solicitarImpressaoEtiqueta(log){
   try{ const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRyAgAAAAA='); audio.play().catch(()=>{});}catch{}
 }
 
-function fecharModalImpressaoEtiqueta(){
-  const m=document.getElementById('modalImpressaoEtiqueta');
-  if(m) m.remove();
-}
+
 
 
 
@@ -400,37 +397,95 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Imprimindo na impressora PADRÃO...</span></div></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-warning text-dark">🖨️ Imprimindo etiqueta na PADRÃO...</span></div></div>`;
   preencher(log);
   atualizarContadorTotal();
+  
+  // === IMPRESSÃO AUTOMÁTICA SEMPRE NA PADRÃO - CORRIGIDO ===
   try{
-    salvarEtiquetaParaImpressao(log);
-    setTimeout(()=>{ imprimirDiretoImpressoraPadrao(log); }, 600);
-  }catch(e){ console.log('Erro print padrão', e); }
+    const etiqueta = salvarEtiquetaParaImpressao(log);
+    console.log('Finalizado, imprimindo etiqueta:', etiqueta);
+    // Chama impressão direta na padrão (sem precisar clicar)
+    setTimeout(()=>{ 
+      imprimirDiretoImpressoraPadrao(log);
+    }, 800);
+  }catch(e){ console.error('Erro ao preparar impressão', e); }
+  
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
   if(document.getElementById('chkAutoVolta').checked){ iniciarContagemRegressivaParaSerie(); }
 }
 
 function imprimirDiretoImpressoraPadrao(log){
   const etiqueta = salvarEtiquetaParaImpressao(log);
-  const params = new URLSearchParams({autoPrint:'1',silent:'1',codigo:etiqueta.codigo||'',serie:etiqueta.serie||'',ean13:etiqueta.ean13||'',descricao:etiqueta.descricao||'',modelo:etiqueta.modelo||''});
+  if(!etiqueta){ console.error('Etiqueta vazia'); return; }
+  
+  // Método 1: Tenta abrir etiquetas.html com autoPrint que já imprime sozinho
+  const params = new URLSearchParams({
+    autoPrint:'1',
+    silent:'1',
+    codigo: etiqueta.codigo||'',
+    serie: etiqueta.serie||'',
+    ean13: etiqueta.ean13||'',
+    descricao: etiqueta.descricao||'',
+    modelo: etiqueta.modelo||'',
+    operador: etiqueta.operador||''
+  });
   const url = 'etiquetas.html?'+params.toString();
-  document.querySelectorAll('#iframeEtiquetaAuto').forEach(el=>el.remove());
-  const iframe=document.createElement('iframe');
+  
+  console.log('Abrindo etiqueta para impressão padrão:', url);
+  
+  // Remove iframes antigos
+  document.querySelectorAll('#iframeEtiquetaAuto, #avisoPrint').forEach(el=>el.remove());
+  
+  // Cria iframe visível temporariamente para garantir que print não seja bloqueado
+  const iframe = document.createElement('iframe');
   iframe.id='iframeEtiquetaAuto';
-  iframe.style.position='fixed'; iframe.style.left='-9999px'; iframe.style.top='-9999px'; iframe.style.width='0'; iframe.style.height='0'; iframe.style.border='none';
+  iframe.style.position='fixed';
+  iframe.style.left='0';
+  iframe.style.top='0';
+  iframe.style.width='100%';
+  iframe.style.height='400px';
+  iframe.style.border='3px solid #198754';
+  iframe.style.background='white';
+  iframe.style.zIndex='9998';
   iframe.src=url;
   document.body.appendChild(iframe);
+  
+  // Aviso
   const aviso=document.createElement('div');
   aviso.id='avisoPrint';
-  aviso.style.position='fixed'; aviso.style.top='20px'; aviso.style.right='20px'; aviso.style.background='linear-gradient(135deg,#198754,#20c997)'; aviso.style.color='white'; aviso.style.padding='14px 20px'; aviso.style.borderRadius='12px'; aviso.style.zIndex='10000'; aviso.style.fontWeight='bold';
-  aviso.innerHTML=`🖨️ Impressora PADRÃO<br><small>S/N: ${etiqueta.serie} | ${etiqueta.codigo}<br>Imprimindo automático...</small>`;
+  aviso.style.position='fixed';
+  aviso.style.top='20px';
+  aviso.style.right='20px';
+  aviso.style.background='linear-gradient(135deg,#198754,#20c997)';
+  aviso.style.color='white';
+  aviso.style.padding='16px 22px';
+  aviso.style.borderRadius='12px';
+  aviso.style.zIndex='10000';
+  aviso.style.fontWeight='bold';
+  aviso.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';
+  aviso.innerHTML=`🖨️ IMPRIMINDO NA PADRÃO<br><small style="font-weight:normal">S/N: ${etiqueta.serie}<br>${etiqueta.codigo} - ${etiqueta.descricao||''}</small><br><button onclick="document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove();" style="margin-top:8px;background:white;color:#198754;border:none;padding:4px 10px;border-radius:6px;font-weight:bold;cursor:pointer">Fechar</button>`;
   document.body.appendChild(aviso);
-  setTimeout(()=>{ document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove(); }, 15000);
+  
+  // Método 2: Após 2 segundos, tenta também impressão direta via window.open como fallback
+  setTimeout(()=>{
+    try{
+      const win = window.open(url, '_blank', 'width=400,height=300');
+      if(win){
+        // A janela aberta já tem autoPrint=1 e vai chamar window.print() sozinha
+        console.log('Janela de impressão aberta, ela vai imprimir sozinha');
+      }
+    }catch(e){ console.log('Popup bloqueado, usando iframe'); }
+  }, 500);
+  
+  // Auto remove após 20s
+  setTimeout(()=>{ 
+    document.getElementById('iframeEtiquetaAuto')?.remove(); 
+    document.getElementById('avisoPrint')?.remove(); 
+  }, 20000);
 }
+
 function imprimirEtiquetaAuto(log){ imprimirDiretoImpressoraPadrao(log); }
-function abrirEtiquetaParaImpressao(){ imprimirDiretoImpressoraPadrao(window._ultimoLog); const m=document.getElementById('modalImpressaoEtiqueta'); if(m) m.remove(); }
-function fecharModalImpressaoEtiqueta(){ const m=document.getElementById('modalImpressaoEtiqueta'); if(m) m.remove(); }
 
 function iniciarContagemRegressivaParaSerie(){
   let segundos=3;
