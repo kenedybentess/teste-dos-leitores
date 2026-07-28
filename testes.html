@@ -324,7 +324,7 @@ function fecharModalImpressaoEtiqueta(){
   if(m) m.remove();
 }
 
-function abrirEtiquetaParaImpressao(){ imprimirDiretoImpressoraPadrao(window._ultimoLog); fecharModalImpressaoEtiqueta(); }
+
 
 function salvarConfigFixa(){
   const cfg={produto:document.getElementById('produtoSel').value,operador:document.getElementById('operadorSel').value,modelo:document.getElementById('modeloSel').value};
@@ -400,101 +400,38 @@ async function finalizar(){
   let log={log_id:'LOG-'+fim.toISOString().slice(0,10).replace(/-/g,'')+'-'+teste.id.slice(-6),teste_id:teste.id,inicio_br:new Date(dadosTeste.inicio).toLocaleString('pt-BR'),fim_br:fim.toLocaleString('pt-BR'),produto:dadosTeste.produto,modelo:dadosTeste.modelo,serie:dadosTeste.serie,operador:dadosTeste.operador,resultado:res,duracao_segundos:dur,leituras:dadosTeste.leituras,codigosNomes:dadosTeste.codigosNomes,hash:btoa(teste.id+'|'+dadosTeste.serie+'|'+res).slice(0,32).toUpperCase()};
   let logs=JSON.parse(localStorage.getItem('logs_evidencia')||'[]');logs.unshift(log);localStorage.setItem('logs_evidencia',JSON.stringify(logs));window._ultimoLog=log;
   document.getElementById('resultadoFinal').style.display='block';
-  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Enviando etiqueta para impressora padrão...</span></div></div>`;
+  document.getElementById('resultadoFinal').innerHTML=`<div class="card-body text-center ${todos?'bg-success':'bg-danger'} text-white"><h3>${res}</h3><p>${dadosTeste.produto} | ${dadosTeste.modelo} | ${dadosTeste.serie}</p><div class="mt-2"><span class="badge bg-light text-dark">🖨️ Imprimindo na impressora PADRÃO...</span></div></div>`;
   preencher(log);
   atualizarContadorTotal();
-  
-  // === AUTO IMPRIMIR NA IMPRESSORA PADRÃO SEM CLICAR EM BOTÃO ===
   try{
     salvarEtiquetaParaImpressao(log);
-    const chkAuto = document.getElementById('chkAutoImprimirEtiqueta');
-    const deveImprimir = !chkAuto || chkAuto.checked; // se não existir checkbox, imprime mesmo assim
-    if(deveImprimir){
-      setTimeout(()=>{ imprimirDiretoImpressoraPadrao(log); }, 700);
-    }
-  }catch(e){ console.log('Erro auto print', e); }
-  
+    setTimeout(()=>{ imprimirDiretoImpressoraPadrao(log); }, 600);
+  }catch(e){ console.log('Erro print padrão', e); }
   if(document.getElementById('chkAutoSalvar').checked){ await salvarLogNaRede(log); }
   if(document.getElementById('chkAutoVolta').checked){ iniciarContagemRegressivaParaSerie(); }
 }
 
 function imprimirDiretoImpressoraPadrao(log){
   const etiqueta = salvarEtiquetaParaImpressao(log);
-  console.log('Imprimindo direto na impressora padrão:', etiqueta);
-  
-  // Cria iframe oculto que carrega etiquetas.html com autoPrint=1 e silent=1
-  // Esse iframe vai chamar window.print() sozinho, sem precisar clicar
-  const params = new URLSearchParams({
-    autoPrint:'1',
-    silent:'1',
-    codigo: etiqueta.codigo||'',
-    serie: etiqueta.serie||'',
-    ean13: etiqueta.ean13||'',
-    descricao: etiqueta.descricao||'',
-    modelo: etiqueta.modelo||'',
-    operador: etiqueta.operador||''
-  });
+  const params = new URLSearchParams({autoPrint:'1',silent:'1',codigo:etiqueta.codigo||'',serie:etiqueta.serie||'',ean13:etiqueta.ean13||'',descricao:etiqueta.descricao||'',modelo:etiqueta.modelo||''});
   const url = 'etiquetas.html?'+params.toString();
-  
-  // Remove iframes antigos
   document.querySelectorAll('#iframeEtiquetaAuto').forEach(el=>el.remove());
-  document.querySelectorAll('#avisoPrint').forEach(el=>el.remove());
-  
-  const iframe = document.createElement('iframe');
+  const iframe=document.createElement('iframe');
   iframe.id='iframeEtiquetaAuto';
-  iframe.style.position='fixed';
-  iframe.style.left='-9999px';
-  iframe.style.top='-9999px';
-  iframe.style.width='0';
-  iframe.style.height='0';
-  iframe.style.border='none';
+  iframe.style.position='fixed'; iframe.style.left='-9999px'; iframe.style.top='-9999px'; iframe.style.width='0'; iframe.style.height='0'; iframe.style.border='none';
   iframe.src=url;
   document.body.appendChild(iframe);
-  
-  // Aviso visual
-  const aviso = document.createElement('div');
+  const aviso=document.createElement('div');
   aviso.id='avisoPrint';
-  aviso.style.position='fixed';
-  aviso.style.top='20px';
-  aviso.style.right='20px';
-  aviso.style.background='linear-gradient(135deg,#198754,#20c997)';
-  aviso.style.color='white';
-  aviso.style.padding='14px 20px';
-  aviso.style.borderRadius='12px';
-  aviso.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';
-  aviso.style.zIndex='10000';
-  aviso.style.fontWeight='bold';
-  aviso.innerHTML=`🖨️ Imprimindo etiqueta na impressora padrão...<br><small style="font-weight:normal">S/N: ${etiqueta.serie} | ${etiqueta.codigo}</small>`;
+  aviso.style.position='fixed'; aviso.style.top='20px'; aviso.style.right='20px'; aviso.style.background='linear-gradient(135deg,#198754,#20c997)'; aviso.style.color='white'; aviso.style.padding='14px 20px'; aviso.style.borderRadius='12px'; aviso.style.zIndex='10000'; aviso.style.fontWeight='bold';
+  aviso.innerHTML=`🖨️ Impressora PADRÃO<br><small>S/N: ${etiqueta.serie} | ${etiqueta.codigo}<br>Imprimindo automático...</small>`;
   document.body.appendChild(aviso);
-  
-  setTimeout(()=>{ 
-    const el1=document.getElementById('iframeEtiquetaAuto');
-    const el2=document.getElementById('avisoPrint');
-    if(el1) el1.remove(); 
-    if(el2) el2.remove();
-  }, 12000);
+  setTimeout(()=>{ document.getElementById('iframeEtiquetaAuto')?.remove(); document.getElementById('avisoPrint')?.remove(); }, 15000);
 }
+function imprimirEtiquetaAuto(log){ imprimirDiretoImpressoraPadrao(log); }
+function abrirEtiquetaParaImpressao(){ imprimirDiretoImpressoraPadrao(window._ultimoLog); const m=document.getElementById('modalImpressaoEtiqueta'); if(m) m.remove(); }
+function fecharModalImpressaoEtiqueta(){ const m=document.getElementById('modalImpressaoEtiqueta'); if(m) m.remove(); }
 
-function imprimirEtiquetaAuto(log){
-  imprimirDiretoImpressoraPadrao(log);
-}
-
-function gerarNomeArquivo(log, ext){return `${log.log_id}_${sanitizeNome(log.produto)}_${sanitizeNome(log.modelo)}_${sanitizeNome(log.serie)}_${sanitizeNome(log.resultado)}.${ext}`;}
-function preencher(log){
-  document.getElementById('comprovante').style.display='block';document.getElementById('areaLogTerminal').style.display='block';
-  document.getElementById('compResultado').innerText=log.resultado;document.getElementById('compID').innerText=log.log_id;
-  document.getElementById('c_inicio').innerText=log.inicio_br;document.getElementById('c_fim').innerText=log.fim_br;
-  document.getElementById('c_prod').innerText=log.produto;document.getElementById('c_model').innerText=log.modelo;
-  document.getElementById('c_serie').innerText=log.serie;document.getElementById('c_oper').innerText=log.operador;
-  document.getElementById('c_dur').innerText=log.duracao_segundos+'s';document.getElementById('c_hash').innerText=log.hash;
-  document.getElementById('nomeArquivoGerado').innerText=gerarNomeArquivo(log,'txt');
-  document.getElementById('c_leituras').innerHTML=Object.entries(log.leituras).map(([k,v])=>{
-    let nome=v.nome||(log.codigosNomes||[])[parseInt(k)-1]?.nome||`Código ${k}`;
-    return `<tr><td>${k} - ${nome}</td><td>${v.esperado}</td><td style="font-family:monospace;">${v.codigo}</td><td>${v.correto?'OK':'FALHA'}</td><td>${v.hora}</td></tr>`;
-  }).join('');
-  const txt=`ARQUIVO: ${gerarNomeArquivo(log,'txt')}\nLOG_ID: ${log.log_id}\nCODIGO: ${log.produto}\nMODELO: ${log.modelo}\nSERIE: ${log.serie}\nOPERADOR: ${log.operador}\nRESULTADO: ${log.resultado}\n`+Object.entries(log.leituras).map(([k,v])=>` ${k}. [${v.nome}] ${v.esperado} => ${v.codigo} [${v.correto?'OK':'FALHA'}]`).join('\n');
-  document.getElementById('logTerminal').innerText=txt;window._textoLogAtual=txt;
-}
 function iniciarContagemRegressivaParaSerie(){
   let segundos=3;
   document.getElementById('msgAutoVolta').style.display='block';
