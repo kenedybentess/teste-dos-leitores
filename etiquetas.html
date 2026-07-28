@@ -125,9 +125,22 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
     <button class="btn-add" onclick="abrirModalAdd()">▼ Adicionar Elemento (menu suspenso) ▼</button>
     <button class="btn-add" style="background:#6c757d" onclick="centralizarElementos()">Organizar em Pilha</button>
 
-    <h2 style="border-color:#198754">💾 Salvar Estado</h2>
-    <button class="btn-save" id="btnSalvar" onclick="salvarEstadoEtiqueta()">💾 Salvar Último Estado</button>
-    <button class="btn-add" style="background:#6c757d" onclick="carregarEstadoEtiqueta(true)">↩️ Restaurar</button>
+    <h2 style="border-color:#198754">💾 Salvar Estado / Arquivo</h2>
+    <div style="background:#f8f9fa;border:2px dashed #0d6efd;border-radius:8px;padding:10px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:bold;color:#0d6efd;margin-bottom:6px">📁 ARQUIVO DE CONFIGURAÇÃO (compartilhar entre PCs)</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+            <button class="btn-add" style="flex:1;background:#0d6efd;margin:0" onclick="exportarConfiguracoes()">📤 Exportar JSON</button>
+            <button class="btn-add" style="flex:1;background:#198754;margin:0" onclick="document.getElementById('inputImportar').click()">📥 Importar JSON</button>
+        </div>
+        <div style="display:flex;gap:6px">
+            <button class="btn-add" style="flex:1;background:#6f42c1;margin:0" onclick="salvarNaRede()">☁️ Salvar na Rede</button>
+            <button class="btn-add" style="flex:1;background:#fd7e14;margin:0" onclick="carregarDaRede()">📂 Carregar da Rede</button>
+        </div>
+        <input type="file" id="inputImportar" accept=".json" style="display:none" onchange="importarConfiguracoes(event)">
+        <div id="statusArquivo" style="font-size:10px;color:#666;margin-top:6px;text-align:center;min-height:14px"></div>
+    </div>
+    <button class="btn-save" id="btnSalvar" onclick="salvarEstadoEtiqueta()">💾 Salvar Último Estado (navegador)</button>
+    <button class="btn-add" style="background:#6c757d" onclick="carregarEstadoEtiqueta(true)">↩️ Restaurar do navegador</button>
     <div id="statusSave" style="font-size:10px;color:#666;margin-bottom:8px;text-align:center"></div>
     <button class="print-btn" onclick="window.print()">🖨️ Imprimir Etiqueta</button>
     <div style="text-align:center;margin-top:8px"><button onclick="window.location.href='testes.html'" style="background:#6c757d;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer">← Voltar ao Teste</button></div>
@@ -438,6 +451,144 @@ function ativarArrasto(){ interact('.etiqueta-item-preview').draggable({ inertia
 function renderizarTudo(){ inicializarFormulario(); renderizarEtiqueta(); }
 function toggleMenuSuspenso(){ const dd=document.getElementById('menuDropdown'); const btn=document.getElementById('btnMenuSuspenso'); dd.classList.toggle('ativo'); btn.textContent = dd.classList.contains('ativo') ? '✕' : '☰'; }
 document.addEventListener('click', function(e){ const menu=document.querySelector('.menu-suspenso'); if(menu && !menu.contains(e.target)){ const dd=document.getElementById('menuDropdown'); if(dd){ dd.classList.remove('ativo'); document.getElementById('btnMenuSuspenso').textContent='☰'; } } });
+
+function exportarConfiguracoes(){
+    try{
+        const estado = {
+            elementos: elementos,
+            idContador: idContador,
+            dadosEtiqueta: dadosEtiqueta,
+            largura: document.getElementById('inputWidth').value,
+            altura: document.getElementById('inputHeight').value,
+            versao: '2.0',
+            data: new Date().toISOString(),
+            descricao: `Etiqueta ${dadosEtiqueta.codigo||''} - ${new Date().toLocaleString('pt-BR')}`
+        };
+        const json = JSON.stringify(estado, null, 2);
+        const blob = new Blob([json], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const nomeArquivo = `etiqueta_config_${(dadosEtiqueta.codigo||'geral').replace(/[^a-z0-9]/gi,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = nomeArquivo;
+        a.click();
+        document.getElementById('statusArquivo').innerHTML = `<span style="color:#198754">✅ Exportado: ${nomeArquivo} (${(blob.size/1024).toFixed(1)} KB)</span>`;
+        document.getElementById('statusSave').innerText = `Arquivo exportado: ${nomeArquivo}`;
+        // Também salva cópia em localStorage para rede
+        localStorage.setItem('etiqueta_config_arquivo', json);
+    }catch(e){
+        alert('Erro ao exportar: '+e.message);
+    }
+}
+
+function importarConfiguracoes(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try{
+            const estado = JSON.parse(e.target.result);
+            if(!estado.elementos || !Array.isArray(estado.elementos)){
+                throw new Error('Arquivo inválido: não contém elementos');
+            }
+            if(confirm(`Importar configuração?\n\nArquivo: ${file.name}\nElementos: ${estado.elementos.length}\nData: ${estado.data ? new Date(estado.data).toLocaleString('pt-BR') : 'N/A'}\n\nIsso vai substituir a etiqueta atual.`)){
+                elementos = estado.elementos;
+                idContador = estado.idContador || (Math.max(...elementos.map(el=>el.id))+1) || 10;
+                dadosEtiqueta = estado.dadosEtiqueta || dadosEtiqueta;
+                if(estado.largura) document.getElementById('inputWidth').value = estado.largura;
+                if(estado.altura) document.getElementById('inputHeight').value = estado.altura;
+                document.getElementById('inputCodProduto').value = dadosEtiqueta.codigo||'';
+                document.getElementById('inputDescricao').value = dadosEtiqueta.descricao||'';
+                document.getElementById('inputEAN13').value = dadosEtiqueta.ean13||'';
+                document.getElementById('inputSerie').value = dadosEtiqueta.serie||'';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+                renderizarTudo();
+                document.getElementById('statusArquivo').innerHTML = `<span style="color:#198754">✅ Importado de ${file.name}: ${elementos.length} elementos</span>`;
+                document.getElementById('statusSave').innerText = `Importado de ${file.name} em ${new Date().toLocaleString('pt-BR')}`;
+            }
+        }catch(err){
+            alert('Erro ao importar: '+err.message);
+            document.getElementById('statusArquivo').innerHTML = `<span style="color:#dc3545">❌ Erro: ${err.message}</span>`;
+        }
+    };
+    reader.readAsText(file);
+    // Limpa input para permitir reimportar mesmo arquivo
+    event.target.value = '';
+}
+
+function salvarNaRede(){
+    try{
+        // Tenta salvar via File System API como testes.html faz, ou exporta para pasta
+        const estado = {
+            elementos: elementos,
+            idContador: idContador,
+            dadosEtiqueta: dadosEtiqueta,
+            largura: document.getElementById('inputWidth').value,
+            altura: document.getElementById('inputHeight').value,
+            versao: '2.0',
+            data: new Date().toISOString()
+        };
+        localStorage.setItem('etiqueta_config_arquivo', JSON.stringify(estado));
+        
+        // Tenta usar showDirectoryPicker se disponível (Chrome/Edge)
+        if(window.showDirectoryPicker){
+            (async ()=>{
+                try{
+                    const dirHandle = await window.showDirectoryPicker({mode:'readwrite'});
+                    const fileHandle = await dirHandle.getFileHandle('etiqueta_config.json', {create:true});
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(JSON.stringify(estado, null, 2));
+                    await writable.close();
+                    document.getElementById('statusArquivo').innerHTML = `<span style="color:#198754">✅ Salvo na rede: ${dirHandle.name}/etiqueta_config.json</span>`;
+                }catch(err){
+                    // Se falhar, faz export normal
+                    exportarConfiguracoes();
+                    document.getElementById('statusArquivo').innerHTML += `<br><span style="color:#6c757d">Dica: Salve o arquivo em \\\\10.50.1.143\\Volume_1\\log leitores\\config\\</span>`;
+                }
+            })();
+        } else {
+            exportarConfiguracoes();
+            document.getElementById('statusArquivo').innerHTML += `<br><span style="color:#6c757d">Salve em \\\\10.50.1.143\\Volume_1\\log leitores\\config\\ para compartilhar</span>`;
+        }
+    }catch(e){
+        exportarConfiguracoes();
+    }
+}
+
+function carregarDaRede(){
+    // Tenta carregar de etiqueta_config.json via fetch (se estiver no servidor http) ou via file picker
+    const input = document.createElement('input');
+    input.type='file';
+    input.accept='.json';
+    input.onchange = (e)=> importarConfiguracoes(e);
+    input.click();
+    
+    // Também tenta fetch automático
+    fetch('./etiqueta_config.json?_='+Date.now())
+        .then(r=>{
+            if(!r.ok) throw new Error('Não encontrado no servidor');
+            return r.json();
+        })
+        .then(estado=>{
+            if(confirm(`Encontrado etiqueta_config.json no servidor com ${estado.elementos?.length||0} elementos. Deseja carregar?`)){
+                const fakeEvent = {target:{files:[new Blob([JSON.stringify(estado)], {type:'application/json'})]}};
+                // Simula importação direta
+                elementos = estado.elementos;
+                idContador = estado.idContador || 10;
+                dadosEtiqueta = estado.dadosEtiqueta || dadosEtiqueta;
+                if(estado.largura) document.getElementById('inputWidth').value = estado.largura;
+                if(estado.altura) document.getElementById('inputHeight').value = estado.altura;
+                document.getElementById('inputCodProduto').value = dadosEtiqueta.codigo||'';
+                document.getElementById('inputDescricao').value = dadosEtiqueta.descricao||'';
+                document.getElementById('inputEAN13').value = dadosEtiqueta.ean13||'';
+                document.getElementById('inputSerie').value = dadosEtiqueta.serie||'';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+                renderizarTudo();
+                document.getElementById('statusArquivo').innerHTML = `<span style="color:#198754">✅ Carregado do servidor: etiqueta_config.json</span>`;
+            }
+        })
+        .catch(()=>{});
+}
+
 window.onload=()=>{
     carregarProdutosSelect(); carregarSeriesSelect();
     carregarDaEtiquetaTeste();
