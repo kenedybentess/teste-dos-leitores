@@ -282,6 +282,10 @@ function aoSelecionarProduto(prodId){
 }
 function aoSelecionarSerie(serie){ if(!serie) return; document.getElementById('inputSerie').value=serie; vincularTodos('serie', serie); }
 
+function limparPrefixoAntigo(valor){
+    if(!valor) return valor;
+    return valor.replace(/^Descrição:\s*/i,'').replace(/^Cód:\s*/i,'').replace(/^S\/N:\s*/i,'').trim();
+}
 function carregarDaEtiquetaTeste(){
     try{ garantirLogoElgin(); }catch{}
     try{
@@ -383,6 +387,17 @@ function salvarEstadoEtiqueta(){
     const btn=document.getElementById('btnSalvar'); btn.classList.add('salvo'); btn.innerText='✅ Estado Salvo!'; document.getElementById('statusSave').innerText='Salvo em '+new Date().toLocaleString('pt-BR'); setTimeout(()=>{btn.classList.remove('salvo'); btn.innerText='💾 Salvar Último Estado';},2000);
 }
 function carregarEstadoEtiqueta(alertar=false){
+    try{
+        const rawTmp = localStorage.getItem(STORAGE_KEY);
+        if(rawTmp){
+            const tmp = JSON.parse(rawTmp);
+            if(tmp.elementos){
+                tmp.elementos.forEach(el=>{ if(el.campo==='descricao' && el.valor) el.valor = limparPrefixoAntigo(el.valor); });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tmp));
+            }
+        }
+    }catch{}
+
     const raw=localStorage.getItem(STORAGE_KEY); if(!raw){ if(alertar) alert('Nenhum estado salvo'); return false; }
     try{
         const est=JSON.parse(raw);
@@ -633,6 +648,9 @@ function carregarDaRede(){
 }
 
 window.onload=()=>{
+    // limpa prefixos antigos salvos
+    try{ elementos.forEach(el=>{ if(el.campo==='descricao' && el.valor) el.valor = limparPrefixoAntigo(el.valor); }); }catch{}
+
     // 1) Restaura ULTIMA configuração salva se existir
     try{
         const raw = localStorage.getItem(STORAGE_KEY);
