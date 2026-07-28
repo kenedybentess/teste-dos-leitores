@@ -141,6 +141,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   restaurarHandleIDB();
   atualizarContadorTotal();
   document.getElementById('serieSel').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarSequencia();}});
+  document.getElementById('serieSel').addEventListener('input', atualizarEtiquetaAuto);
 });
 
 async function inicializarDadosCompartilhados(){
@@ -223,6 +224,119 @@ function carregarConfigFixa(){
     bloquearConfig(true);
   }
 }
+
+function atualizarEtiquetaAuto(){
+  try{
+    const cfg=JSON.parse(localStorage.getItem('config_fixa_teste')||'{}');
+    const produtoCodigo = cfg.produto || document.getElementById('produtoSel')?.value || '';
+    const modelo = cfg.modelo || document.getElementById('modeloSel')?.value || '';
+    const serie = document.getElementById('serieSel')?.value?.trim() || '';
+    const operador = cfg.operador || document.getElementById('operadorSel')?.value || '';
+
+    // Busca produto completo para pegar nome e ean13
+    const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
+    const prod=produtos.find(p=>p.codigo===produtoCodigo) || {};
+    const nome = prod.nome || produtoCodigo;
+    const ean13 = prod.ean13 || '';
+
+    const etiquetaAuto = {
+      codigo: produtoCodigo,
+      descricao: nome,
+      modelo: modelo,
+      ean13: ean13,
+      serie: serie,
+      operador: operador,
+      atualizadoEm: new Date().toISOString()
+    };
+    localStorage.setItem('etiqueta_auto', JSON.stringify(etiquetaAuto));
+    // Também mantém compatibilidade com etiqueta_estado
+    // console.log('Etiqueta auto atualizada', etiquetaAuto);
+  }catch(e){ console.log('Erro etiqueta auto', e); }
+}
+
+function salvarEtiquetaParaImpressao(log){
+  try{
+    const produtos=JSON.parse(localStorage.getItem('produtos')||'[]');
+    const prod=produtos.find(p=>p.codigo===log.produto) || {};
+    const etiquetaParaImpressao = {
+      codigo: log.produto,
+      descricao: prod.nome || log.produto,
+      modelo: log.modelo,
+      ean13: prod.ean13 || '',
+      serie: log.serie,
+      operador: log.operador,
+      resultado: log.resultado,
+      data: log.fim_br,
+      log_id: log.log_id,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('etiqueta_para_impressao', JSON.stringify(etiquetaParaImpressao));
+    localStorage.setItem('etiqueta_auto', JSON.stringify(etiquetaParaImpressao));
+    return etiquetaParaImpressao;
+  }catch(e){ return null; }
+}
+
+function solicitarImpressaoEtiqueta(log){
+  const etiqueta = salvarEtiquetaParaImpressao(log);
+  // Cria modal se não existir
+  let modalExist = document.getElementById('modalImpressaoEtiqueta');
+  if(modalExist) modalExist.remove();
+  const isAprovado = log.resultado==='APROVADO';
+  const modalHtml = `
+  <div id="modalImpressaoEtiqueta" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center">
+    <div style="background:white;border-radius:16px;max-width:480px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.3);overflow:hidden;animation: popIn 0.3s ease">
+      <div style="background:${isAprovado?'linear-gradient(135deg,#198754,#20c997)':'linear-gradient(135deg,#dc3545,#fd7e14)'};color:white;padding:18px;text-align:center">
+        <div style="font-size:42px">${isAprovado?'✅':'❌'}</div>
+        <h4 style="margin:8px 0">Teste ${log.resultado}</h4>
+        <small>${log.produto} | S/N: ${log.serie}</small>
+      </div>
+      <div style="padding:20px">
+        <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px">
+          <div><b>Produto:</b> ${etiqueta.descricao} (${etiqueta.codigo})</div>
+          <div><b>Modelo:</b> ${etiqueta.modelo}</div>
+          <div><b>Série:</b> <span style="font-weight:900;letter-spacing:1px">${etiqueta.serie}</span></div>
+          ${etiqueta.ean13?`<div><b>EAN13:</b> ${etiqueta.ean13}</div>`:''}
+          <div><b>Operador:</b> ${etiqueta.operador}</div>
+        </div>
+        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px;margin-bottom:16px;font-size:12px">
+          🔗 <b>Etiqueta vinculada</b> ao teste. Ao imprimir, o número de série <b>${etiqueta.serie}</b> será usado automaticamente.
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="fecharModalImpressaoEtiqueta()" style="flex:1;padding:12px;border:1px solid #dee2e6;border-radius:8px;background:white;font-weight:bold;cursor:pointer">Continuar sem imprimir</button>
+          <button onclick="abrirEtiquetaParaImpressao()" style="flex:2;padding:12px;border:none;border-radius:8px;background:#0d6efd;color:white;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(13,110,253,0.3)">🖨️ Imprimir Etiqueta</button>
+        </div>
+        <div style="text-align:center;margin-top:10px">
+          <small class="text-muted">A etiqueta abrirá em nova aba com dados preenchidos</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>@keyframes popIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}</style>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  // Som de bip opcional
+  try{ const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRyAgAAAAA='); audio.play().catch(()=>{});}catch{}
+}
+
+function fecharModalImpressaoEtiqueta(){
+  const m=document.getElementById('modalImpressaoEtiqueta');
+  if(m) m.remove();
+}
+
+function abrirEtiquetaParaImpressao(){
+  const etiqueta = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||'{}');
+  const params = new URLSearchParams({
+    auto: '1',
+    codigo: etiqueta.codigo||'',
+    serie: etiqueta.serie||'',
+    ean13: etiqueta.ean13||'',
+    descricao: etiqueta.descricao||'',
+    modelo: etiqueta.modelo||''
+  });
+  window.open('etiquetas.html?'+params.toString(), '_blank');
+  fecharModalImpressaoEtiqueta();
+}
+
 function salvarConfigFixa(){
   const cfg={produto:document.getElementById('produtoSel').value,operador:document.getElementById('operadorSel').value,modelo:document.getElementById('modeloSel').value};
   if(!cfg.produto||!cfg.operador||!cfg.modelo) return;
@@ -231,6 +345,7 @@ function salvarConfigFixa(){
   document.getElementById('statusConfig').innerText='Salvo: '+cfg.produto+' / '+cfg.operador;
   document.getElementById('statusConfig').className='badge bg-success';
   bloquearConfig(true);
+  atualizarEtiquetaAuto();
   document.getElementById('serieSel').focus();
 }
 function bloquearConfig(b){document.getElementById('produtoSel').disabled=b;document.getElementById('operadorSel').disabled=b;document.getElementById('modeloSel').disabled=b;}
