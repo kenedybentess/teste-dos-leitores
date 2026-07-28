@@ -164,35 +164,48 @@ function vincularTodos(campo, novoValor){
     else if(campo==='ean13') dadosEtiqueta.ean13=novoValor;
     else if(campo==='descricao') dadosEtiqueta.descricao=novoValor;
     else if(campo==='serie') dadosEtiqueta.serie=novoValor;
+
+    // Atualiza inputs do topo se existirem
+    const mapInput = {codigo:'inputCodProduto', ean13:'inputEAN13', descricao:'inputDescricao', serie:'inputSerie'};
+    if(mapInput[campo]){
+        const inp=document.getElementById(mapInput[campo]);
+        if(inp && document.activeElement!==inp) inp.value=novoValor;
+    }
+
     elementos.forEach(el=>{
         if(el.campo===campo){
             if(campo==='codigo'){
                 if(el.tipo==='texto') el.valor=`Cód: ${novoValor}`;
-                else if(el.tipo==='barcode') el.valor=novoValor;
-            } else if(campo==='ean13'){ el.valor=novoValor; }
-            else if(campo==='descricao'){ el.valor=`Descrição: ${novoValor}`; }
-            else if(campo==='serie'){ el.valor=`S/N: ${novoValor}`; }
+                else el.valor=novoValor;
+            } else if(campo==='ean13'){
+                el.valor=novoValor;
+            } else if(campo==='descricao'){
+                if(el.tipo==='texto') el.valor=`Descrição: ${novoValor}`;
+                else el.valor=novoValor;
+            } else if(campo==='serie'){
+                if(el.tipo==='texto') el.valor=`S/N: ${novoValor}`;
+                else el.valor=novoValor;
+            }
         }
     });
-    renderizarTudo(); autoSalvar();
+    // Não chama renderizarTudo para não perder foco, só etiqueta e atualiza form se necessário
+    renderizarEtiqueta();
+    // Atualiza só os inputs de elementos que não estão com foco
+    if(document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='SELECT'){
+        inicializarFormulario();
+    }
+    autoSalvar();
 }
 
 function vincularCampo(id, novoCampo){
     const el=elementos.find(e=>e.id===id);
     if(!el) return;
     el.campo=novoCampo;
-    // Ao vincular, puxa valor atual do dadosEtiqueta
     if(novoCampo){
-        if(novoCampo==='codigo') el.valor=dadosEtiqueta.codigo;
-        else if(novoCampo==='ean13') el.valor=dadosEtiqueta.ean13;
-        else if(novoCampo==='descricao') el.valor=dadosEtiqueta.descricao;
-        else if(novoCampo==='serie') el.valor=dadosEtiqueta.serie;
-        // Formata texto se for texto
-        if(el.tipo==='texto'){
-            if(novoCampo==='codigo') el.valor=`Cód: ${dadosEtiqueta.codigo}`;
-            else if(novoCampo==='descricao') el.valor=`Descrição: ${dadosEtiqueta.descricao}`;
-            else if(novoCampo==='serie') el.valor=`S/N: ${dadosEtiqueta.serie}`;
-        }
+        if(novoCampo==='codigo') el.valor = el.tipo==='texto' ? `Cód: ${dadosEtiqueta.codigo}` : dadosEtiqueta.codigo;
+        else if(novoCampo==='ean13') el.valor = dadosEtiqueta.ean13;
+        else if(novoCampo==='descricao') el.valor = el.tipo==='texto' ? `Descrição: ${dadosEtiqueta.descricao}` : dadosEtiqueta.descricao;
+        else if(novoCampo==='serie') el.valor = el.tipo==='texto' ? `S/N: ${dadosEtiqueta.serie}` : dadosEtiqueta.serie;
     }
     renderizarTudo(); autoSalvar();
 }
@@ -200,11 +213,22 @@ function atualizarVinculado(id, novoValor){
     const el=elementos.find(e=>e.id===id);
     if(!el) return;
     if(el.campo){
-        // Se está vinculado, atualiza todos vinculados
         vincularTodos(el.campo, novoValor);
     } else {
-        // Se manual, só atualiza ele
         el.valor=novoValor;
+        renderizarEtiqueta();
+        autoSalvar();
+    }
+}
+function atualizarTextoVinculado(id, novoValorCompleto){
+    const el=elementos.find(e=>e.id===id);
+    if(!el) return;
+    if(el.campo){
+        // Remove prefixos para pegar valor puro
+        let valorPuro = novoValorCompleto.replace(/^Cód:\s*|^Descrição:\s*|^S\/N:\s*/i,'').trim();
+        vincularTodos(el.campo, valorPuro);
+    } else {
+        el.valor=novoValorCompleto;
         renderizarEtiqueta();
         autoSalvar();
     }
@@ -303,7 +327,19 @@ function inicializarFormulario(){
     elementos.forEach((el)=>{
         let htmlCampos='';
         if(el.tipo==='texto'){
-            htmlCampos=`<div class="form-group"><label>Texto vinculado [${el.campo||'manual'}]:</label><input type="text" value="${el.valor}" oninput="if('${el.campo}'!==''){ vincularTodos('${el.campo}', this.value.replace(/^Cód: |^Descrição: |^S\/N: /,'')) } else { atualizarDado(${el.id}, 'valor', this.value); }"></div>`;
+            htmlCampos=`
+                <div class="form-group"><label>🔗 Vincular a:</label>
+                <select onchange="vincularCampo(${el.id}, this.value)" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px">
+                    <option value="" ${!el.campo?'selected':''}>✏️ Manual</option>
+                    <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
+                    <option value="descricao" ${el.campo==='descricao'?'selected':''}>📝 Descrição</option>
+                    <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série</option>
+                    <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13</option>
+                </select>
+                </div>
+                <div class="form-group"><label>Texto ${el.campo? '[vinculado 🔗]' : '[manual]'}:</label><input type="text" value="${el.valor}" oninput="atualizarTextoVinculado(${el.id}, this.value)"></div>
+                <div class="row-inputs"><div class="form-group"><label>Fonte:</label><input type="number" value="${el.tamFonte||10}" oninput="atualizarDado(${el.id}, 'tamFonte', parseInt(this.value))"></div><div class="form-group"><label>Negrito:</label><select onchange="atualizarDado(${el.id}, 'negrito', this.value==='true')"><option value="true" ${el.negrito?'selected':''}>Sim</option><option value="false" ${!el.negrito?'selected':''}>Não</option></select></div></div>
+            `;
         } else if(el.tipo==='imagem'){
             htmlCampos=`<div class="form-group"><label>Imagem:</label><input type="file" accept="image/*" onchange="carregarImagemLocal(${el.id}, event)"><input type="text" value="${el.valor.startsWith('data:')?'':el.valor}" placeholder="URL" oninput="atualizarDado(${el.id}, 'valor', this.value); autoSalvar()" style="margin-top:4px"></div>`;
         } else if(el.tipo==='barcode'){
@@ -323,7 +359,7 @@ function inicializarFormulario(){
                     <div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="20" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div>
                 </div>
                 <div class="form-group"><label>↕️ Espaço entre código e informação: <b>${el.distanciaTexto!==undefined?el.distanciaTexto:-2}px</b></label>
-                <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); this.previousElementSibling.innerHTML='↕️ Espaço entre código e informação: <b>'+this.value+'px</b>'" style="width:100%">
+                <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
                 <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Grudado</span><span>Normal</span><span>Afastado</span></div>
                 </div>
             `;
@@ -343,7 +379,7 @@ function inicializarFormulario(){
                     <div class="form-group"><label>Larg. Barras:</label><input type="number" step="0.1" value="${el.eanLargura||1.5}" min="1" max="3" oninput="atualizarDado(${el.id}, 'eanLargura', parseFloat(this.value))"></div>
                 </div>
                 <div class="form-group"><label>↕️ Espaço entre barras e número: <b>${el.eanEspaco!==undefined?el.eanEspaco:2}px</b></label>
-                <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); this.previousElementSibling.innerHTML='↕️ Espaço entre barras e número: <b>'+this.value+'px</b>'" style="width:100%">
+                <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
                 <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Colado</span><span>Normal</span><span>Afastado</span></div>
                 </div>
             `;
@@ -366,7 +402,7 @@ function renderizarEtiqueta(){
         const itemDiv=document.createElement('div'); itemDiv.className='etiqueta-item-preview'; itemDiv.setAttribute('data-id',el.id); itemDiv.style.left=mmParaPx(el.x)+'px'; itemDiv.style.top=mmParaPx(el.y)+'px'; itemDiv.style.width=mmParaPx(el.w)+'px'; itemDiv.style.height=mmParaPx(el.h)+'px';
         if(el.tipo==='texto'){ const inner=document.createElement('div'); inner.className='preview-text'; inner.innerText=el.valor; inner.style.fontSize=(el.tamFonte||11)+'px'; inner.style.fontWeight=el.negrito?'bold':'normal'; itemDiv.appendChild(inner); }
         else if(el.tipo==='imagem'){ if(el.valor){ const img=document.createElement('img'); img.className='preview-img'; img.src=el.valor; itemDiv.appendChild(img); } else { const ph=document.createElement('div'); ph.style.fontSize='10px'; ph.style.color='#888'; ph.innerText='Sem Imagem'; itemDiv.appendChild(ph); } }
-        else if(el.tipo==='barcode'){ if(el.valor){ const bcDiv=document.createElement('div'); bcDiv.className='preview-barcode'; let tv=el.valor.toUpperCase(); if(!tv.startsWith('*')) tv='*'+tv; if(!tv.endsWith('*')) tv=tv+'*'; bcDiv.innerHTML=`<div class="barcode-font" style="font-size:${el.tamanhoBarra||36}px;">${tv}</div><div class="barcode-text" style="font-size:${el.tamTexto||9}px;">${el.valor.toUpperCase()}</div>`; itemDiv.appendChild(bcDiv); } }
+        else if(el.tipo==='barcode'){ if(el.valor){ const bcDiv=document.createElement('div'); bcDiv.className='preview-barcode'; let tv=el.valor.toUpperCase(); if(!tv.startsWith('*')) tv='*'+tv; if(!tv.endsWith('*')) tv=tv+'*'; const dist = el.distanciaTexto!==undefined?el.distanciaTexto:-2; bcDiv.innerHTML=`<div class="barcode-font" style="font-size:${el.tamanhoBarra||36}px;">${tv}</div><div class="barcode-text" style="font-size:${el.tamTexto||9}px; margin-top:${dist}px;">${el.valor.toUpperCase()}</div>`; itemDiv.appendChild(bcDiv); } }
         else if(el.tipo==='ean13'){ if(el.valor){ const eanDiv=document.createElement('div'); eanDiv.className='preview-ean13'; const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.style.width='100%'; svg.style.height='100%'; eanDiv.appendChild(svg); itemDiv.appendChild(eanDiv); setTimeout(()=>{ try{ JsBarcode(svg, el.valor, {format:"EAN13", displayValue:true, fontSize:el.tamTexto||9, textMargin:el.eanEspaco!==undefined?el.eanEspaco:2, margin:0, width:el.eanLargura||1.5, height:40, background:"#ffffff"});}catch(err){ svg.innerHTML=`<text x="5" y="15" font-size="10" fill="red">EAN inválido</text>`; } },0); } }
         else if(el.tipo==='linha'){ const linhaDiv=document.createElement('div'); linhaDiv.className='preview-linha'; let esp=mmParaPx(el.espessuraLinha||1); const li=document.createElement('div'); li.className='linha-interna'; if(el.orientacao==='vertical'){ li.style.width=esp+'px'; li.style.height='100%'; } else { li.style.width='100%'; li.style.height=esp+'px'; } linhaDiv.appendChild(li); itemDiv.appendChild(linhaDiv); }
         etiqueta.appendChild(itemDiv);
