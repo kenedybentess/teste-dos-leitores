@@ -2,19 +2,20 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Etiquetas - Menu Suspenso</title>
+<title>Gerador de Etiquetas - Vinculado ao Teste</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
 body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
-.sidebar{width:430px;background:#fff;border-right:1px solid #ddd;padding:15px;overflow-y:auto}
+.sidebar{width:440px;background:#fff;border-right:1px solid #ddd;padding:15px;overflow-y:auto}
 .sidebar h2{font-size:13px;margin-bottom:8px;color:#333;border-bottom:2px solid #007bff;padding-bottom:3px;margin-top:14px}
 .form-group{margin-bottom:8px} .form-group label{display:block;font-size:11px;font-weight:bold;color:#555;margin-bottom:2px}
 .form-group input,.form-group select{width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px}
 .row-inputs{display:flex;gap:6px} .row-inputs .form-group{flex:1}
 .dados-box{background:linear-gradient(135deg,#e7f1ff,#d0e2ff);border:2px solid #0d6efd;border-radius:8px;padding:10px;margin-bottom:12px}
+.dados-box.teste-vinculo{background:linear-gradient(135deg,#d1e7dd,#a3d9a5);border-color:#198754}
 .vinculo-aviso{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:6px;margin-bottom:10px;font-size:10px;color:#856404}
 .elemento-box{background:#f9f9f9;border:1px solid #e0e0e0;padding:8px;border-radius:4px;margin-bottom:8px}
 .elemento-box.vinculado{border-color:#0d6efd;background:#e7f1ff}
@@ -25,7 +26,7 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .btn-save{background:#0d6efd;color:white;border:none;padding:10px;width:100%;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;margin-bottom:8px}
 .btn-save.salvo{background:#198754 !important}
 .print-btn{background:#28a745;color:white;border:none;padding:10px;width:100%;border-radius:4px;cursor:pointer;font-weight:bold;font-size:13px;margin-top:6px}
-.preview-area{flex:1;display:flex;justify-content:center;align-items:center;background:#e9ecef;padding:20px;overflow:auto}
+.preview-area{flex:1;display:flex;justify-content:center;align-items:center;background:#e9ecef;padding:20px;overflow:auto;flex-direction:column}
 #etiqueta{background:#fff;border:2px solid #999;position:relative;box-shadow:0 4px 10px rgba(0,0,0,0.2);overflow:hidden}
 .etiqueta-item-preview{position:absolute;user-select:none;touch-action:none;box-sizing:border-box;border:1px dashed #007bff;background-color:rgba(0,123,255,0.03);cursor:move;display:flex;align-items:center;justify-content:center}
 .preview-img{width:100%;height:100%;object-fit:contain;pointer-events:none}
@@ -34,36 +35,33 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
 .preview-text{width:100%;height:100%;display:flex;align-items:center;overflow:hidden;pointer-events:none;padding:0 2px}
 .preview-linha{width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .linha-interna{background-color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-/* MENU SUSPENSO FLUTUANTE - NAVEGAÇÃO */
 .menu-suspenso{position:fixed;top:12px;right:12px;z-index:9999}
 .menu-btn{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;border:none;cursor:pointer;font-size:22px;box-shadow:0 4px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;transition:0.2s}
-.menu-btn:hover{transform:scale(1.05)}
-.menu-dropdown{position:absolute;top:54px;right:0;width:210px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.18);overflow:hidden;display:none;border:1px solid #dee2e6}
+.menu-dropdown{position:absolute;top:54px;right:0;width:220px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.18);overflow:hidden;display:none;border:1px solid #dee2e6}
 .menu-dropdown.ativo{display:block;animation:menuFade 0.2s ease}
 @keyframes menuFade{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .menu-dropdown a{display:flex;align-items:center;gap:10px;padding:12px 14px;text-decoration:none;color:#333;font-size:13px;font-weight:500;border-bottom:1px solid #f1f1f1}
 .menu-dropdown a:hover{background:#e7f1ff;color:#0d6efd}
 .menu-dropdown a.ativo{background:#0d6efd;color:white}
 .menu-dropdown .menu-header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:10px 14px;font-size:11px;font-weight:bold}
-/* MENU SUSPENSO PARA ADICIONAR ELEMENTO - NOVO */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;display:none;align-items:center;justify-content:center}
 .modal-overlay.ativo{display:flex}
-.modal-box{background:white;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,0.3);width:340px;overflow:hidden;animation:modalPop 0.25s ease}
+.modal-box{background:white;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,0.3);width:360px;overflow:hidden;animation:modalPop 0.25s ease}
 @keyframes modalPop{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
 .modal-header{background:linear-gradient(135deg,#0d6efd,#1e88e5);color:white;padding:14px 16px;font-weight:bold;font-size:14px;display:flex;justify-content:space-between;align-items:center}
 .modal-body{padding:16px}
-.modal-body label{font-size:12px;font-weight:bold;color:#333;margin-bottom:6px;display:block}
 .modal-select{width:100%;padding:10px;border:2px solid #0d6efd;border-radius:8px;font-size:14px;background:#f0f7ff;cursor:pointer}
 .modal-footer{display:flex;gap:8px;padding:12px 16px;background:#f8f9fa}
 .modal-btn{flex:1;padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:13px}
 .modal-btn-ok{background:#0d6efd;color:white}
 .modal-btn-cancel{background:#e9ecef;color:#333}
-@media print{.sidebar,.menu-suspenso,.modal-overlay{display:none !important}.preview-area{background:none;padding:0}#etiqueta{border:none !important;box-shadow:none !important}.etiqueta-item-preview{border:none !important;background:transparent !important}}
+.badge-vinculo{display:inline-block;background:#198754;color:white;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:4px}
+@media print{.sidebar,.menu-suspenso,.modal-overlay,.no-print{display:none !important}.preview-area{background:none;padding:0}#etiqueta{border:none !important;box-shadow:none !important}.etiqueta-item-preview{border:none !important;background:transparent !important}}
 </style>
 </head>
 <body>
 
-<div class="menu-suspenso">
+<div class="menu-suspenso no-print">
     <button class="menu-btn" onclick="toggleMenuSuspenso()" id="btnMenuSuspenso">☰</button>
     <div class="menu-dropdown" id="menuDropdown">
         <div class="menu-header">📂 NAVEGAÇÃO RÁPIDA</div>
@@ -77,13 +75,9 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
     </div>
 </div>
 
-<!-- MODAL MENU SUSPENSO PARA ADICIONAR ELEMENTO -->
 <div class="modal-overlay" id="modalAddElemento" onclick="if(event.target===this) fecharModalAdd()">
     <div class="modal-box">
-        <div class="modal-header">
-            <span>➕ Adicionar Elemento</span>
-            <span style="cursor:pointer" onclick="fecharModalAdd()">✕</span>
-        </div>
+        <div class="modal-header"><span>➕ Adicionar Elemento</span><span style="cursor:pointer" onclick="fecharModalAdd()">✕</span></div>
         <div class="modal-body">
             <label>Escolha o tipo do elemento:</label>
             <select id="selectTipoElemento" class="modal-select">
@@ -93,35 +87,36 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
                 <option value="ean13">📦 EAN13</option>
                 <option value="linha">➖ Linha</option>
             </select>
-            <div style="margin-top:12px;background:#e7f1ff;border-radius:8px;padding:8px;font-size:11px;color:#0d6efd">
-                <b>Dica:</b> <span id="dicaTipo">Texto livre, descrição, série, etc</span>
-            </div>
+            <div style="margin-top:12px;background:#e7f1ff;border-radius:8px;padding:8px;font-size:11px;color:#0d6efd"><b>Dica:</b> <span id="dicaTipo">Texto livre, descrição, série, etc</span></div>
         </div>
-        <div class="modal-footer">
-            <button class="modal-btn modal-btn-cancel" onclick="fecharModalAdd()">Cancelar</button>
-            <button class="modal-btn modal-btn-ok" onclick="confirmarAddElemento()">OK Adicionar</button>
-        </div>
+        <div class="modal-footer"><button class="modal-btn modal-btn-cancel" onclick="fecharModalAdd()">Cancelar</button><button class="modal-btn modal-btn-ok" onclick="confirmarAddElemento()">OK Adicionar</button></div>
     </div>
 </div>
 
 <div class="sidebar">
-    <h2 style="border-color:#198754;color:#198754">📦 DADOS DA ETIQUETA - INÍCIO</h2>
-    <div class="dados-box">
+    <div id="alertaTesteVinculado" style="display:none;background:linear-gradient(135deg,#198754,#20c997);color:white;border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;box-shadow:0 4px 12px rgba(25,135,84,0.3)">
+        <b>🔗 VINCULADO AO TESTE</b><br>
+        <small id="alertaTesteTexto">Carregado do último teste</small><br>
+        <button onclick="carregarDaEtiquetaTeste()" style="margin-top:6px;background:white;color:#198754;border:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:11px;cursor:pointer">🔄 Recarregar do teste</button>
+    </div>
+
+    <h2 style="border-color:#198754;color:#198754">📦 DADOS DA ETIQUETA - VINCULADO AO TESTE</h2>
+    <div class="dados-box teste-vinculo">
         <div class="form-group">
-            <label>1️⃣ Código do Produto * (puxa do cadastro)</label>
+            <label>1️⃣ Código do Produto * (puxa do cadastro e do teste)</label>
             <select id="selectProdutoCodigo" onchange="aoSelecionarProduto(this.value)"><option value="">-- Selecione o produto --</option></select>
         </div>
         <div class="row-inputs">
-            <div class="form-group"><label>Código Produto (vincula BARCODE + EAN13):</label><input type="text" id="inputCodProduto" placeholder="Ex: EL250-01" oninput="dadosEtiqueta.codigo=this.value; vincularTodos('codigo', this.value)"></div>
+            <div class="form-group"><label>Código Produto (vincula BARCODE):</label><input type="text" id="inputCodProduto" placeholder="Ex: EL250-01" oninput="dadosEtiqueta.codigo=this.value; vincularTodos('codigo', this.value)"></div>
             <div class="form-group"><label>EAN13 (vinculado):</label><input type="text" id="inputEAN13" maxlength="13" placeholder="7891234567895" oninput="this.value=this.value.replace(/[^0-9]/g,''); dadosEtiqueta.ean13=this.value; vincularTodos('ean13', this.value)"></div>
         </div>
         <div class="form-group"><label>Descrição:</label><input type="text" id="inputDescricao" placeholder="Ex: Leitor Elgin EL250" oninput="dadosEtiqueta.descricao=this.value; vincularTodos('descricao', this.value)"></div>
         <div class="form-group">
-            <label>2️⃣ Número de Série (puxa do TESTE):</label>
+            <label>2️⃣ Número de Série (puxa do TESTE): <span class="badge-vinculo">AUTO</span></label>
             <select id="selectSerie" onchange="aoSelecionarSerie(this.value)"><option value="">-- Últimos testes --</option></select>
-            <input type="text" id="inputSerie" style="margin-top:4px" placeholder="Ou digite o Nº Série" oninput="dadosEtiqueta.serie=this.value; vincularTodos('serie', this.value)">
+            <input type="text" id="inputSerie" style="margin-top:4px;font-weight:bold;letter-spacing:1px" placeholder="S/N do teste" oninput="dadosEtiqueta.serie=this.value; vincularTodos('serie', this.value)">
         </div>
-        <div class="vinculo-aviso">🔗 <b>VINCULADO:</b> Código no topo atualiza <b>BARCODE + TEXTO</b>. EAN13 atualiza barra EAN13. Tudo interligado!</div>
+        <div class="vinculo-aviso">🔗 <b>VINCULADO AO TESTE.HTML:</b> Quando configurar o código no teste, a etiqueta atualiza. O S/N digitado no teste aparece aqui automaticamente. Ao final do teste, solicita impressão!</div>
     </div>
 
     <h2>Configurar Etiqueta</h2>
@@ -141,19 +136,25 @@ body{background:#f4f6f9;display:flex;height:100vh;overflow:hidden}
     <div id="statusSave" style="font-size:10px;color:#666;margin-bottom:8px;text-align:center"></div>
 
     <button class="print-btn" onclick="window.print()">🖨️ Imprimir Etiqueta</button>
+    <div style="text-align:center;margin-top:8px"><button onclick="window.location.href='testes.html'" style="background:#6c757d;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer">← Voltar ao Teste</button></div>
 </div>
 
-<div class="preview-area"><div id="etiqueta"></div></div>
+<div class="preview-area">
+    <div id="infoAutoPrint" style="display:none;background:#fff3cd;border:2px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:12px;max-width:400px;text-align:center;font-size:13px" class="no-print">
+        <b>🖨️ Etiqueta do teste carregada!</b><br><span id="infoAutoPrintTexto"></span><br><button onclick="window.print()" style="margin-top:8px;background:#198754;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer">Imprimir Agora</button>
+    </div>
+    <div id="etiqueta"></div>
+</div>
 
 <script>
 let dadosEtiqueta={codigo:'EL250-01', descricao:'Leitor Elgin EL250', ean13:'7891234567895', serie:'SN12345678'};
 let elementos=[
     {id:1, tipo:'texto', campo:'codigo', valor:'Cód: EL250-01', x:5, y:3, w:90, h:6, tamFonte:11, negrito:true},
-    {id:2, tipo:'barcode', campo:'codigo', valor:'EL250-01', x:5, y:10, w:90, h:16, tamanhoBarra:36, tamTexto:9},
+    {id:2, tipo:'barcode', campo:'codigo', valor:'EL250-01', x:5, y:10, w:90, h:16, tamanhoBarra:36, tamTexto:9, distanciaTexto:-2},
     {id:3, tipo:'linha', valor:'', x:5, y:27, w:90, h:0.8, orientacao:'horizontal', espessuraLinha:0.8},
     {id:4, tipo:'texto', campo:'descricao', valor:'Descrição: Leitor Elgin EL250', x:5, y:29, w:90, h:6, tamFonte:9, negrito:false},
-    {id:5, tipo:'texto', campo:'serie', valor:'S/N: SN12345678', x:5, y:36, w:90, h:6, tamFonte:9, negrito:false},
-    {id:6, tipo:'ean13', campo:'ean13', valor:'7891234567895', x:5, y:43, w:90, h:20, tamTexto:9}
+    {id:5, tipo:'texto', campo:'serie', valor:'S/N: SN12345678', x:5, y:36, w:90, h:8, tamFonte:11, negrito:true},
+    {id:6, tipo:'ean13', campo:'ean13', valor:'7891234567895', x:5, y:46, w:90, h:22, tamTexto:9, eanEspaco:2, eanLargura:1.5}
 ];
 let idContador=7;
 function mmParaPx(mm){return mm*(96/25.4);} function pxParaMm(px){return px/(96/25.4);}
@@ -164,22 +165,18 @@ function vincularTodos(campo, novoValor){
     else if(campo==='ean13') dadosEtiqueta.ean13=novoValor;
     else if(campo==='descricao') dadosEtiqueta.descricao=novoValor;
     else if(campo==='serie') dadosEtiqueta.serie=novoValor;
-
-    // Atualiza inputs do topo se existirem
-    const mapInput = {codigo:'inputCodProduto', ean13:'inputEAN13', descricao:'inputDescricao', serie:'inputSerie'};
+    const mapInput={codigo:'inputCodProduto', ean13:'inputEAN13', descricao:'inputDescricao', serie:'inputSerie'};
     if(mapInput[campo]){
         const inp=document.getElementById(mapInput[campo]);
         if(inp && document.activeElement!==inp) inp.value=novoValor;
     }
-
     elementos.forEach(el=>{
         if(el.campo===campo){
             if(campo==='codigo'){
                 if(el.tipo==='texto') el.valor=`Cód: ${novoValor}`;
                 else el.valor=novoValor;
-            } else if(campo==='ean13'){
-                el.valor=novoValor;
-            } else if(campo==='descricao'){
+            } else if(campo==='ean13'){ el.valor=novoValor; }
+            else if(campo==='descricao'){
                 if(el.tipo==='texto') el.valor=`Descrição: ${novoValor}`;
                 else el.valor=novoValor;
             } else if(campo==='serie'){
@@ -188,15 +185,19 @@ function vincularTodos(campo, novoValor){
             }
         }
     });
-    // Não chama renderizarTudo para não perder foco, só etiqueta e atualiza form se necessário
     renderizarEtiqueta();
-    // Atualiza só os inputs de elementos que não estão com foco
     if(document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='SELECT'){
         inicializarFormulario();
     }
     autoSalvar();
+    // Atualiza etiqueta_auto também
+    try{
+        const atual=JSON.parse(localStorage.getItem('etiqueta_auto')||'{}');
+        atual[campo]=novoValor;
+        atual.atualizadoEm=new Date().toISOString();
+        localStorage.setItem('etiqueta_auto', JSON.stringify(atual));
+    }catch{}
 }
-
 function vincularCampo(id, novoCampo){
     const el=elementos.find(e=>e.id===id);
     if(!el) return;
@@ -212,28 +213,17 @@ function vincularCampo(id, novoCampo){
 function atualizarVinculado(id, novoValor){
     const el=elementos.find(e=>e.id===id);
     if(!el) return;
-    if(el.campo){
-        vincularTodos(el.campo, novoValor);
-    } else {
-        el.valor=novoValor;
-        renderizarEtiqueta();
-        autoSalvar();
-    }
+    if(el.campo){ vincularTodos(el.campo, novoValor); }
+    else { el.valor=novoValor; renderizarEtiqueta(); autoSalvar(); }
 }
 function atualizarTextoVinculado(id, novoValorCompleto){
     const el=elementos.find(e=>e.id===id);
     if(!el) return;
     if(el.campo){
-        // Remove prefixos para pegar valor puro
         let valorPuro = novoValorCompleto.replace(/^Cód:\s*|^Descrição:\s*|^S\/N:\s*/i,'').trim();
         vincularTodos(el.campo, valorPuro);
-    } else {
-        el.valor=novoValorCompleto;
-        renderizarEtiqueta();
-        autoSalvar();
-    }
+    } else { el.valor=novoValorCompleto; renderizarEtiqueta(); autoSalvar(); }
 }
-
 function carregarProdutosSelect(){
     const sel=document.getElementById('selectProdutoCodigo');
     try{
@@ -250,7 +240,7 @@ function carregarSeriesSelect(){
         const testes=JSON.parse(localStorage.getItem('testes')||'[]');
         sel.innerHTML='<option value="">-- Últimos testes (20) --</option>';
         testes.slice(0,20).forEach(t=>{
-            const opt=document.createElement('option'); opt.value=t.serie||''; opt.textContent=`${t.serie||''} - ${t.produtoCodigo||''}`; sel.appendChild(opt);
+            const opt=document.createElement('option'); opt.value=t.serie||''; opt.textContent=`${t.serie||''} - ${t.produtoCodigo||''} (${t.resultado||''})`; sel.appendChild(opt);
         });
     }catch(e){}
 }
@@ -267,6 +257,73 @@ function aoSelecionarProduto(prodId){
     vincularTodos('ean13', dadosEtiqueta.ean13);
 }
 function aoSelecionarSerie(serie){ if(!serie) return; document.getElementById('inputSerie').value=serie; vincularTodos('serie', serie); }
+
+function carregarDaEtiquetaTeste(){
+    try{
+        // Tenta carregar de etiqueta_para_impressao (final do teste) primeiro
+        let dados = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||'null');
+        if(!dados) dados = JSON.parse(localStorage.getItem('etiqueta_auto')||'null');
+        if(!dados){
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('codigo') || params.get('serie')){
+                dados = {
+                    codigo: params.get('codigo')||'',
+                    descricao: params.get('descricao')||'',
+                    ean13: params.get('ean13')||'',
+                    serie: params.get('serie')||'',
+                    modelo: params.get('modelo')||''
+                };
+            }
+        }
+        if(!dados) return false;
+
+        if(dados.codigo) dadosEtiqueta.codigo=dados.codigo;
+        if(dados.descricao) dadosEtiqueta.descricao=dados.descricao;
+        if(dados.ean13) dadosEtiqueta.ean13=dados.ean13;
+        if(dados.serie) dadosEtiqueta.serie=dados.serie;
+
+        document.getElementById('inputCodProduto').value=dadosEtiqueta.codigo||'';
+        document.getElementById('inputDescricao').value=dadosEtiqueta.descricao||'';
+        document.getElementById('inputEAN13').value=dadosEtiqueta.ean13||'';
+        document.getElementById('inputSerie').value=dadosEtiqueta.serie||'';
+
+        // Atualiza elementos vinculados
+        elementos.forEach(el=>{
+            if(el.campo && dados[el.campo]){
+                if(el.campo==='codigo'){
+                    el.valor = el.tipo==='texto' ? `Cód: ${dados.codigo}` : dados.codigo;
+                } else if(el.campo==='ean13'){
+                    el.valor = dados.ean13||el.valor;
+                } else if(el.campo==='descricao'){
+                    el.valor = el.tipo==='texto' ? `Descrição: ${dados.descricao||dados.codigo}` : (dados.descricao||dados.codigo);
+                } else if(el.campo==='serie'){
+                    el.valor = el.tipo==='texto' ? `S/N: ${dados.serie}` : dados.serie;
+                }
+            }
+        });
+
+        const alerta=document.getElementById('alertaTesteVinculado');
+        const textoAlerta=document.getElementById('alertaTesteTexto');
+        if(alerta){
+            alerta.style.display='block';
+            textoAlerta.innerText = `${dados.codigo||''} | S/N: ${dados.serie||''} ${dados.resultado? '| '+dados.resultado : ''}`;
+        }
+
+        // Se veio com auto=1 mostra banner de impressão
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('auto')==='1' || dados.serie){
+            const banner=document.getElementById('infoAutoPrint');
+            const bannerTexto=document.getElementById('infoAutoPrintTexto');
+            if(banner){
+                banner.style.display='block';
+                bannerTexto.innerText = `${dados.codigo||''} - S/N: ${dados.serie||''}`;
+            }
+        }
+
+        renderizarTudo();
+        return true;
+    }catch(e){ console.log('Erro carregar etiqueta teste', e); return false; }
+}
 
 function salvarEstadoEtiqueta(){
     const estado={elementos, idContador, dadosEtiqueta, largura:document.getElementById('inputWidth').value, altura:document.getElementById('inputHeight').value, data:new Date().toISOString()};
@@ -292,14 +349,8 @@ function carregarEstadoEtiqueta(alertar=false){
 let autoSaveTimeout=null;
 function autoSalvar(){ clearTimeout(autoSaveTimeout); autoSaveTimeout=setTimeout(()=>{ const est={elementos,idContador,dadosEtiqueta,largura:document.getElementById('inputWidth').value,altura:document.getElementById('inputHeight').value,data:new Date().toISOString()}; localStorage.setItem(STORAGE_KEY,JSON.stringify(est)); document.getElementById('statusSave').innerText='Auto-salvo '+new Date().toLocaleTimeString('pt-BR'); },1000); }
 
-// NOVO: MENU SUSPENSO PARA ADICIONAR ELEMENTO (substitui prompt)
-function abrirModalAdd(){
-    document.getElementById('modalAddElemento').classList.add('ativo');
-    document.getElementById('selectTipoElemento').focus();
-}
-function fecharModalAdd(){
-    document.getElementById('modalAddElemento').classList.remove('ativo');
-}
+function abrirModalAdd(){ document.getElementById('modalAddElemento').classList.add('ativo'); }
+function fecharModalAdd(){ document.getElementById('modalAddElemento').classList.remove('ativo'); }
 function confirmarAddElemento(){
     const tipo=document.getElementById('selectTipoElemento').value;
     fecharModalAdd();
@@ -307,21 +358,13 @@ function confirmarAddElemento(){
     let novoH=tipo==='imagem'?20:(tipo==='barcode'?16:(tipo==='ean13'?20:6));
     let valorPadrao=tipo==='texto'?'Novo Texto':(tipo==='imagem'?'':(tipo==='barcode'?dadosEtiqueta.codigo:(tipo==='ean13'?dadosEtiqueta.ean13:'')));
     let campoPadrao=tipo==='barcode'?'codigo':(tipo==='ean13'?'ean13':'');
-    elementos.push({id:idContador++, tipo:tipo, valor:valorPadrao, x:5, y:35, w:novoW, h:novoH, tamFonte:10, negrito:false, tamTexto:9, campo:campoPadrao, orientacao:'horizontal', espessuraLinha:1});
+    elementos.push({id:idContador++, tipo:tipo, valor:valorPadrao, x:5, y:35, w:novoW, h:novoH, tamFonte:10, negrito:false, tamTexto:9, campo:campoPadrao, orientacao:'horizontal', espessuraLinha:1, distanciaTexto:-2, eanEspaco:2, eanLargura:1.5});
     renderizarTudo(); autoSalvar();
 }
-// Dicas dinâmicas no modal
 document.getElementById('selectTipoElemento')?.addEventListener('change', function(){
-    const dicas={
-        'texto':'Texto livre, descrição, série, etc',
-        'imagem':'Logo Elgin, foto do produto, ícone',
-        'barcode':'Código do produto em barras Code39 (vinculado)',
-        'ean13':'Código EAN13 em barras (vinculado ao cadastro)',
-        'linha':'Linha separadora horizontal ou vertical'
-    };
+    const dicas={'texto':'Texto livre, descrição, série, etc','imagem':'Logo Elgin, foto do produto, ícone','barcode':'Código do produto em barras Code39 (vinculado)','ean13':'Código EAN13 em barras (vinculado ao cadastro)','linha':'Linha separadora horizontal ou vertical'};
     document.getElementById('dicaTipo').innerText=dicas[this.value]||'';
 });
-
 function inicializarFormulario(){
     const container=document.getElementById('container-elementos-form'); container.innerHTML='';
     elementos.forEach((el)=>{
@@ -333,11 +376,10 @@ function inicializarFormulario(){
                     <option value="" ${!el.campo?'selected':''}>✏️ Manual</option>
                     <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
                     <option value="descricao" ${el.campo==='descricao'?'selected':''}>📝 Descrição</option>
-                    <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série</option>
+                    <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série (do teste)</option>
                     <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13</option>
-                </select>
-                </div>
-                <div class="form-group"><label>Texto ${el.campo? '[vinculado 🔗]' : '[manual]'}:</label><input type="text" value="${el.valor}" oninput="atualizarTextoVinculado(${el.id}, this.value)"></div>
+                </select></div>
+                <div class="form-group"><label>Texto ${el.campo?'[vinculado 🔗]' : '[manual]'}:</label><input type="text" value="${el.valor}" oninput="atualizarTextoVinculado(${el.id}, this.value)"></div>
                 <div class="row-inputs"><div class="form-group"><label>Fonte:</label><input type="number" value="${el.tamFonte||10}" oninput="atualizarDado(${el.id}, 'tamFonte', parseInt(this.value))"></div><div class="form-group"><label>Negrito:</label><select onchange="atualizarDado(${el.id}, 'negrito', this.value==='true')"><option value="true" ${el.negrito?'selected':''}>Sim</option><option value="false" ${!el.negrito?'selected':''}>Não</option></select></div></div>
             `;
         } else if(el.tipo==='imagem'){
@@ -346,42 +388,32 @@ function inicializarFormulario(){
             htmlCampos=`
                 <div class="form-group"><label>🔗 Vincular a:</label>
                 <select onchange="vincularCampo(${el.id}, this.value)" class="modal-select" style="padding:6px;font-size:12px">
-                    <option value="" ${!el.campo?'selected':''}>✏️ Manual (digitado)</option>
+                    <option value="" ${!el.campo?'selected':''}>✏️ Manual</option>
                     <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
                     <option value="descricao" ${el.campo==='descricao'?'selected':''}>📝 Descrição</option>
                     <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série (teste)</option>
                     <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13</option>
-                </select>
-                </div>
+                </select></div>
                 <div class="form-group"><label>Valor BARCODE ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" oninput="atualizarVinculado(${el.id}, this.value)"></div>
-                <div class="row-inputs">
-                    <div class="form-group"><label>Tam. Barras:</label><input type="number" value="${el.tamanhoBarra||36}" min="10" max="80" oninput="atualizarDado(${el.id}, 'tamanhoBarra', parseInt(this.value))"></div>
-                    <div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="20" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div>
-                </div>
+                <div class="row-inputs"><div class="form-group"><label>Tam. Barras:</label><input type="number" value="${el.tamanhoBarra||36}" min="10" max="80" oninput="atualizarDado(${el.id}, 'tamanhoBarra', parseInt(this.value))"></div><div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="20" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div></div>
                 <div class="form-group"><label>↕️ Espaço entre código e informação: <b>${el.distanciaTexto!==undefined?el.distanciaTexto:-2}px</b></label>
                 <input type="range" min="-10" max="20" value="${el.distanciaTexto!==undefined?el.distanciaTexto:-2}" oninput="atualizarDado(${el.id}, 'distanciaTexto', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
-                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Grudado</span><span>Normal</span><span>Afastado</span></div>
-                </div>
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Grudado</span><span>Normal</span><span>Afastado</span></div></div>
             `;
         } else if(el.tipo==='ean13'){
             htmlCampos=`
                 <div class="form-group"><label>🔗 Vincular a:</label>
                 <select onchange="vincularCampo(${el.id}, this.value)" class="modal-select" style="padding:6px;font-size:12px">
                     <option value="" ${!el.campo?'selected':''}>✏️ Manual</option>
-                    <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13 Produto (recomendado)</option>
+                    <option value="ean13" ${el.campo==='ean13'?'selected':''}>📦 EAN13 Produto</option>
                     <option value="codigo" ${el.campo==='codigo'?'selected':''}>📦 Código Produto</option>
                     <option value="serie" ${el.campo==='serie'?'selected':''}>🔢 Nº Série</option>
-                </select>
-                </div>
+                </select></div>
                 <div class="form-group"><label>Valor EAN13 ${el.campo? '<span style="color:#0d6efd">[vinculado]</span>' : ''}:</label><input type="text" value="${el.valor}" maxlength="13" oninput="this.value=this.value.replace(/[^0-9]/g,''); atualizarVinculado(${el.id}, this.value)"></div>
-                <div class="row-inputs">
-                    <div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="18" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div>
-                    <div class="form-group"><label>Larg. Barras:</label><input type="number" step="0.1" value="${el.eanLargura||1.5}" min="1" max="3" oninput="atualizarDado(${el.id}, 'eanLargura', parseFloat(this.value))"></div>
-                </div>
+                <div class="row-inputs"><div class="form-group"><label>Tam. Texto:</label><input type="number" value="${el.tamTexto||9}" min="6" max="18" oninput="atualizarDado(${el.id}, 'tamTexto', parseInt(this.value))"></div><div class="form-group"><label>Larg. Barras:</label><input type="number" step="0.1" value="${el.eanLargura||1.5}" min="1" max="3" oninput="atualizarDado(${el.id}, 'eanLargura', parseFloat(this.value))"></div></div>
                 <div class="form-group"><label>↕️ Espaço entre barras e número: <b>${el.eanEspaco!==undefined?el.eanEspaco:2}px</b></label>
                 <input type="range" min="0" max="15" value="${el.eanEspaco!==undefined?el.eanEspaco:2}" oninput="atualizarDado(${el.id}, 'eanEspaco', parseInt(this.value)); const b=this.parentElement.querySelector('b'); if(b) b.textContent=this.value+'px';" style="width:100%">
-                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Colado</span><span>Normal</span><span>Afastado</span></div>
-                </div>
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#666"><span>Colado</span><span>Normal</span><span>Afastado</span></div></div>
             `;
         } else if(el.tipo==='linha'){
             htmlCampos=`<div class="row-inputs"><div class="form-group"><label>Orientação:</label><select onchange="atualizarDado(${el.id}, 'orientacao', this.value); autoSalvar()"><option value="horizontal" ${el.orientacao==='horizontal'?'selected':''}>Horizontal</option><option value="vertical" ${el.orientacao==='vertical'?'selected':''}>Vertical</option></select></div><div class="form-group"><label>Espessura:</label><input type="number" step="0.5" value="${el.espessuraLinha||1}" oninput="atualizarDado(${el.id}, 'espessuraLinha', parseFloat(this.value)); autoSalvar()"></div></div>`;
@@ -390,7 +422,6 @@ function inicializarFormulario(){
     });
 }
 function carregarImagemLocal(id,event){ const arq=event.target.files[0]; if(arq){ const r=new FileReader(); r.onload=e=>{ atualizarDado(id,'valor',e.target.result); autoSalvar(); }; r.readAsDataURL(arq);} }
-// Compatibilidade: adicionarElemento agora abre o menu suspenso
 function adicionarElemento(){ abrirModalAdd(); }
 function removerElemento(id){ elementos=elementos.filter(e=>e.id!==id); renderizarTudo(); autoSalvar(); }
 function atualizarDado(id,campo,valor){ const el=elementos.find(e=>e.id===id); if(el){ el[campo]=valor; renderizarEtiqueta(); autoSalvar(); } }
@@ -411,23 +442,38 @@ function renderizarEtiqueta(){
 }
 function ativarArrasto(){ interact('.etiqueta-item-preview').draggable({ inertia:true, modifiers:[interact.modifiers.restrictRect({restriction:'parent',endOnly:true})], listeners:{ move(event){ const target=event.target; const id=parseInt(target.getAttribute('data-id')); const elData=elementos.find(e=>e.id===id); if(elData){ elData.x+=pxParaMm(event.dx); elData.y+=pxParaMm(event.dy); target.style.left=mmParaPx(elData.x)+'px'; target.style.top=mmParaPx(elData.y)+'px'; } }, end(){ autoSalvar(); } } }); }
 function renderizarTudo(){ inicializarFormulario(); renderizarEtiqueta(); }
-
-// MENU SUSPENSO NAVEGAÇÃO
-function toggleMenuSuspenso(){
-    const dd=document.getElementById('menuDropdown');
-    const btn=document.getElementById('btnMenuSuspenso');
-    dd.classList.toggle('ativo');
-    btn.textContent = dd.classList.contains('ativo') ? '✕' : '☰';
-}
-document.addEventListener('click', function(e){
-    const menu=document.querySelector('.menu-suspenso');
-    if(menu && !menu.contains(e.target)){
-        const dd=document.getElementById('menuDropdown');
-        if(dd){ dd.classList.remove('ativo'); document.getElementById('btnMenuSuspenso').textContent='☰'; }
+function toggleMenuSuspenso(){ const dd=document.getElementById('menuDropdown'); const btn=document.getElementById('btnMenuSuspenso'); dd.classList.toggle('ativo'); btn.textContent = dd.classList.contains('ativo') ? '✕' : '☰'; }
+document.addEventListener('click', function(e){ const menu=document.querySelector('.menu-suspenso'); if(menu && !menu.contains(e.target)){ const dd=document.getElementById('menuDropdown'); if(dd){ dd.classList.remove('ativo'); document.getElementById('btnMenuSuspenso').textContent='☰'; } } });
+window.onload=()=>{
+    carregarProdutosSelect(); carregarSeriesSelect();
+    // Primeiro tenta carregar do teste, depois do estado salvo
+    const carregouTeste = carregarDaEtiquetaTeste();
+    if(!carregouTeste){
+        carregarEstadoEtiqueta(false);
+    } else {
+        // Se carregou do teste, ainda tenta mesclar com layout salvo
+        const raw=localStorage.getItem('etiqueta_estado_v2');
+        if(raw){
+            try{
+                const est=JSON.parse(raw);
+                // Mantém layout (posições) do salvo, mas dados do teste
+                if(est.elementos){
+                    // Preserva posições mas atualiza valores vinculados com dados do teste
+                    const dadosTeste = JSON.parse(localStorage.getItem('etiqueta_para_impressao')||localStorage.getItem('etiqueta_auto')||'{}');
+                    est.elementos.forEach(elSalvo=>{
+                        const elAtual=elementos.find(e=>e.campo===elSalvo.campo && e.tipo===elSalvo.tipo);
+                        // Se já tem dados do teste, usa
+                    });
+                }
+            }catch{}
+        }
     }
-});
-
-window.onload=()=>{ carregarProdutosSelect(); carregarSeriesSelect(); const carregou=carregarEstadoEtiqueta(false); renderizarTudo(); if(carregou) document.getElementById('statusSave').innerText='Estado anterior restaurado automaticamente'; };
+    renderizarTudo();
+    if(!carregouTeste){
+        const raw=localStorage.getItem('etiqueta_estado_v2');
+        if(raw){ try{ const est=JSON.parse(raw); document.getElementById('statusSave').innerText='Layout restaurado de '+new Date(est.data).toLocaleString('pt-BR'); }catch{} }
+    }
+};
 </script>
 </body>
 </html>
